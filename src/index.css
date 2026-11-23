@@ -1,0 +1,373 @@
+/* ========================================
+   SOON GALLERY
+   Korean Ink Painting Virtual Gallery
+======================================== */
+
+:root {
+  /* Background */
+  --bg: #f7f3eb;
+  --surface: #fffcf7;
+  --surface-soft: #f0e9df;
+
+  /* Typography */
+  --text: #6b6258;
+  --text-h: #292724;
+  --text-muted: #968a7c;
+
+  /* Brand Colors */
+  --primary: #76563e;
+  --primary-hover: #5d422f;
+
+  /* Korean Ink & Seal */
+  --ink: #292724;
+  --accent: #a64b3c;
+  --accent-hover: #87382d;
+
+  /* Accent Background */
+  --accent-bg: rgba(166, 75, 60, 0.08);
+  --accent-border: rgba(166, 75, 60, 0.3);
+
+  /* Borders */
+  --border: #ddd0bd;
+  --border-light: #eae2d7;
+
+  /* Gallery Materials */
+  --wood: #b9916a;
+  --wood-dark: #76563e;
+  --wall: #f3e9dc;
+  --floor: #d5b18a;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(65, 45, 30, 0.06);
+
+  --shadow: 0 10px 30px rgba(65, 45, 30, 0.1);
+
+  --shadow-lg: 0 20px 60px rgba(65, 45, 30, 0.15);
+
+  /* Typography */
+  --sans:
+    "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  --heading: "Noto Serif KR", "Nanum Myeongjo", Georgia, serif;
+
+  --mono: ui-monospace, Consolas, monospace;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* Animation */
+  --transition: 0.25s ease;
+
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.2px;
+
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   RESET
+======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ========================================
+   TYPOGRAPHY
+======================================== */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--heading);
+  color: var(--text-h);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+h1 {
+  font-size: clamp(36px, 5vw, 64px);
+  letter-spacing: -1.5px;
+  margin: 0 0 24px;
+}
+
+h2 {
+  font-size: clamp(26px, 3vw, 36px);
+  margin: 0 0 16px;
+}
+
+h3 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+
+p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+small {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   BUTTONS
+======================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 13px 28px;
+
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  transition: var(--transition);
+}
+
+/* Main Button */
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Outline Button */
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--border);
+}
+
+.btn-outline:hover {
+  background: var(--surface-soft);
+  border-color: var(--primary);
+}
+
+/* Seal Accent Button */
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover);
+}
+
+/* ========================================
+   CARDS & PANELS
+======================================== */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+/* ========================================
+   FORM ELEMENTS
+======================================== */
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px 14px;
+
+  background: var(--surface);
+  color: var(--text-h);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  outline: none;
+  transition: var(--transition);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(118, 86, 62, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* ========================================
+   3D GALLERY
+======================================== */
+
+/* Three.js Canvas Container */
+.gallery-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--wall);
+}
+
+.gallery-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Gallery Overlay UI */
+.gallery-ui {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.gallery-ui button,
+.gallery-ui a,
+.gallery-ui input {
+  pointer-events: auto;
+}
+
+/* ========================================
+   UTILITIES
+======================================== */
+
+.text-center {
+  text-align: center;
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.container {
+  width: min(100% - 40px, 1200px);
+  margin-inline: auto;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+
+  .container {
+    width: calc(100% - 32px);
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .btn {
+    padding: 12px 20px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
