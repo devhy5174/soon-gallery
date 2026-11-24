@@ -50,7 +50,7 @@ function ArtFrame({
     const tryNext = () => {
       if (i >= exts.length) { setTexture(canvasTex); return; }
       new THREE.TextureLoader().load(
-        `/artworks/${artType}.${exts[i++]}`,
+        `${import.meta.env.BASE_URL}artworks/${artType}.${exts[i++]}`,
         (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setTexture(tex); },
         undefined,
         tryNext,

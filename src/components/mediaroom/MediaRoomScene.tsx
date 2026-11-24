@@ -67,7 +67,7 @@ function ArtworkDisplay({
         const img = new Image();
         img.onload = () => imgCache.current.set(artwork.artType, img);
         img.onerror = tryNext;
-        img.src = `/artworks/${artwork.artType}.${exts[i++]}`;
+        img.src = `${import.meta.env.BASE_URL}artworks/${artwork.artType}.${exts[i++]}`;
       };
       tryNext();
     });

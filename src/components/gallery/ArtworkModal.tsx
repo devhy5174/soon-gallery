@@ -50,7 +50,7 @@ export default function ArtworkModal({ artwork, onClose }: Props) {
       const img = new Image();
       img.onload = () => drawImage(img);
       img.onerror = tryNext;
-      img.src = `/artworks/${artwork.artType}.${exts[i++]}`;
+      img.src = `${import.meta.env.BASE_URL}artworks/${artwork.artType}.${exts[i++]}`;
     };
     tryNext();
   }, [artwork]);

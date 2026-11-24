@@ -60,7 +60,7 @@ export default function GalleryBgm({ bottom, mediaSeated }: { bottom?: boolean; 
 
   return (
     <>
-      <audio ref={audioRef} src="/audio/bgm.mp3" loop preload="auto" />
+      <audio ref={audioRef} src={`${import.meta.env.BASE_URL}audio/bgm.mp3`} loop preload="auto" />
 
       {/* 미디어룸에서는 HUD 컨트롤 그룹 안에 버튼이 렌더링되므로 숨김 */}
       {!bottom && <button
