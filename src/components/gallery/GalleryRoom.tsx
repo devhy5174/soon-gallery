@@ -51,6 +51,36 @@ function FloorMaterial() {
   return <meshStandardMaterial map={texture} roughness={0.35} metalness={0} />;
 }
 
+/** 미디어 룸 문 위 사인 */
+function DoorSign() {
+  const texture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 320;
+    canvas.height = 96;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#f3e9dc";
+    ctx.fillRect(0, 0, 320, 96);
+    ctx.strokeStyle = "#b9916a";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(6, 6, 308, 84);
+    ctx.fillStyle = "#6b5240";
+    ctx.font = "500 36px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("미디어 룸", 160, 46);
+    ctx.font = "400 20px sans-serif";
+    ctx.fillStyle = "#a08060";
+    ctx.fillText("Media Room", 160, 76);
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
+  return (
+    <mesh position={[-5.92, 2.86, -10]} rotation={[0, Math.PI / 2, 0]}>
+      <planeGeometry args={[1.1, 0.33]} />
+      <meshBasicMaterial map={texture} transparent />
+    </mesh>
+  );
+}
+
 /** 갤러리 벤치 */
 function Bench({ position }: { position: [number, number, number] }) {
   return (
@@ -131,15 +161,45 @@ export default function GalleryRoom() {
         <meshStandardMaterial color={COLORS.wall} roughness={0.9} />
       </mesh>
 
-      {/* ── 왼쪽 벽 (x = -6) ── */}
-      <mesh
-        position={[-W / 2, H / 2, 0]}
-        rotation={[0, Math.PI / 2, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[D, H]} />
+      {/* ── 왼쪽 벽 — 문 개구부(z=-9.3~-10.7, h=2.4) 를 제외하고 3조각으로 분리 ── */}
+      {/* 구역 A: 문 오른쪽 ~ 입구 (z = -9.3 ~ 13) */}
+      <mesh position={[-W / 2, H / 2, 1.85]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[22.3, H]} />
         <meshStandardMaterial color={COLORS.wall} roughness={0.9} />
       </mesh>
+      {/* 구역 B: 뒤쪽 끝 (z = -13 ~ -10.7) */}
+      <mesh position={[-W / 2, H / 2, -11.85]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[2.3, H]} />
+        <meshStandardMaterial color={COLORS.wall} roughness={0.9} />
+      </mesh>
+      {/* 구역 C: 문 위 (z = -9.3 ~ -10.7, y = 2.4 ~ 4.5) */}
+      <mesh position={[-W / 2, 3.45, -10]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[1.4, 2.1]} />
+        <meshStandardMaterial color={COLORS.wall} roughness={0.9} />
+      </mesh>
+
+      {/* 문 액자 (원목 프레임) */}
+      {/* 왼쪽 세로 기둥 */}
+      <mesh position={[-5.95, 1.2, -9.26]} castShadow>
+        <boxGeometry args={[0.1, 2.4, 0.14]} />
+        <meshStandardMaterial color={COLORS.frameWood} roughness={0.6} />
+      </mesh>
+      {/* 오른쪽 세로 기둥 */}
+      <mesh position={[-5.95, 1.2, -10.74]} castShadow>
+        <boxGeometry args={[0.1, 2.4, 0.14]} />
+        <meshStandardMaterial color={COLORS.frameWood} roughness={0.6} />
+      </mesh>
+      {/* 상단 가로 보 */}
+      <mesh position={[-5.95, 2.46, -10]} castShadow>
+        <boxGeometry args={[0.1, 0.14, 1.62]} />
+        <meshStandardMaterial color={COLORS.frameWood} roughness={0.6} />
+      </mesh>
+
+      {/* 문 너머 따뜻한 빛 — 미디어 룸 존재 암시 */}
+      <pointLight position={[-5.6, 1.5, -10]} intensity={6} distance={5} color="#ffe0a0" />
+
+      {/* 문 위 "미디어 룸" 사인 */}
+      <DoorSign />
 
       {/* ── 오른쪽 벽 (x = +6) ── */}
       <mesh

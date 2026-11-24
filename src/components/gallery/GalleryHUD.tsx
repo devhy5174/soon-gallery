@@ -11,6 +11,7 @@ interface Props {
   isLocked: boolean;
   isMobile: boolean;
   lookingAt: string | null;
+  nearDoor: boolean;
   onExit: () => void;
   isModalOpen: boolean;
 }
@@ -19,6 +20,7 @@ export default function GalleryHUD({
   isLocked,
   isMobile,
   lookingAt,
+  nearDoor,
   onExit,
   isModalOpen,
 }: Props) {
@@ -70,7 +72,7 @@ export default function GalleryHUD({
             <p className="gallery-overlay__hint">
               WASD · 방향키 이동 &nbsp;|&nbsp; 마우스 시점 전환
               <br />
-              작품 조준 후 <strong>E</strong> 키로 감상
+              작품·문 조준 후 <strong>클릭</strong>으로 입장
             </p>
             <button className="gallery-overlay__exit btn btn-outline" onClick={handleExit}>
               ← 입장 화면으로
@@ -88,11 +90,30 @@ export default function GalleryHUD({
             aria-hidden="true"
           />
 
-          {/* 작품 E키 힌트 */}
+          {/* 작품 클릭 힌트 */}
           {lookingAt && (
             <div className="gallery-interact-hint">
-              <kbd className="gallery-interact-hint__key">E</kbd>
-              <span>작품 감상</span>
+              <span className="gallery-interact-hint__icon" aria-hidden="true">
+                {/* 마우스 클릭 아이콘 */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  <path d="M12 3v8l3-3m-3 3L9 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <span>클릭하여 감상</span>
+            </div>
+          )}
+
+          {/* 문 근처 힌트 */}
+          {nearDoor && !lookingAt && (
+            <div className="gallery-interact-hint gallery-interact-hint--door">
+              <span className="gallery-interact-hint__icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M9 12h6m-3-3v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </span>
+              <span>클릭하여 미디어 룸 입장</span>
             </div>
           )}
 
@@ -100,7 +121,7 @@ export default function GalleryHUD({
           <div className="gallery-controls-guide">
             <span>WASD · 방향키 이동</span>
             <span className="gallery-controls-guide__sep">|</span>
-            <span>E 작품 감상</span>
+            <span>클릭 감상·입장</span>
             <span className="gallery-controls-guide__sep">|</span>
             <span>ESC 일시정지</span>
           </div>

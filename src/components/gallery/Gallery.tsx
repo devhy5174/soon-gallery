@@ -2,7 +2,7 @@
  * Gallery
  * 3D 갤러리 메인 컴포넌트
  * - 모바일/데스크톱 감지 후 맞는 컨트롤 렌더링
- * - Canvas(씬) + HUD + 작품 모달 조합
+ * - 문 근처 E키로 미디어 룸 입장
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -23,9 +23,9 @@ import "./Gallery.css";
 
 interface Props {
   onExit: () => void;
+  onEnterMediaRoom: () => void;
 }
 
-/** 터치 디바이스 여부 감지 */
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined"
@@ -41,13 +41,13 @@ function useIsMobile() {
   return isMobile;
 }
 
-export default function Gallery({ onExit }: Props) {
+export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
   const isMobile = useIsMobile();
   const [isLocked, setIsLocked] = useState(false);
   const [lookingAt, setLookingAt] = useState<string | null>(null);
+  const [nearDoor, setNearDoor] = useState(false);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkData | null>(null);
 
-  // lookingAt 중복 setState 방지
   const lookingAtRef = useRef<string | null>(null);
   const handleLookingAt = useCallback((id: string | null) => {
     if (id !== lookingAtRef.current) {
@@ -56,13 +56,17 @@ export default function Gallery({ onExit }: Props) {
     }
   }, []);
 
-  /** 작품 모달 오픈 (데스크톱 E키 / 모바일 탭 공통) */
   const handleInteract = useCallback((artworkId: string) => {
     const artwork = ARTWORK_LIST.find((a) => a.id === artworkId);
     if (!artwork) return;
     if (document.pointerLockElement) document.exitPointerLock();
     setSelectedArtwork(artwork);
   }, []);
+
+  const handleEnterMediaRoom = useCallback(() => {
+    if (document.pointerLockElement) document.exitPointerLock();
+    onEnterMediaRoom();
+  }, [onEnterMediaRoom]);
 
   const handleCloseModal = useCallback(() => {
     setSelectedArtwork(null);
@@ -84,7 +88,6 @@ export default function Gallery({ onExit }: Props) {
         <GalleryRoom />
         <GalleryArtworks />
 
-        {/* 디바이스별 컨트롤 — 데스크톱: 포인터락+WASD / 모바일: 터치 */}
         {isMobile ? (
           <GalleryControlsMobile onInteract={handleInteract} />
         ) : (
@@ -92,26 +95,25 @@ export default function Gallery({ onExit }: Props) {
             onLockChange={setIsLocked}
             onLookingAt={handleLookingAt}
             onInteract={handleInteract}
+            onEnterMediaRoom={handleEnterMediaRoom}
+            onNearDoor={setNearDoor}
           />
         )}
       </Canvas>
 
-      {/* HUD 오버레이 */}
       <GalleryHUD
         isLocked={isLocked}
         isMobile={isMobile}
         lookingAt={lookingAt}
+        nearDoor={nearDoor}
         onExit={onExit}
         isModalOpen={!!selectedArtwork}
       />
 
-      {/* 배경음악 */}
       <GalleryBgm />
 
-      {/* 모바일 가상 조이스틱 */}
       {isMobile && !selectedArtwork && <MobileJoystick />}
 
-      {/* 작품 감상 모달 */}
       {selectedArtwork && (
         <ArtworkModal artwork={selectedArtwork} onClose={handleCloseModal} />
       )}

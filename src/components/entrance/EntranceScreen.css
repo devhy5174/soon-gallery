@@ -212,6 +212,24 @@
   letter-spacing: 1px;
 }
 
+/* 미디어 룸 버튼 */
+.entrance-actions__btn--media {
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+.entrance-actions__btn--media:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* 관리자 버튼 — 소형 */
+.entrance-actions__btn--admin {
+  font-size: 13px;
+  padding: 10px 24px;
+  color: var(--text-muted);
+}
+
 /* ========================================
    안내 문구
 ======================================== */

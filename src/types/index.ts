@@ -9,4 +9,9 @@
  * - admin-login: 관리자 로그인
  * - admin-gallery: 3D 전시관 (관리자 모드)
  */
-export type AppScreen = "entrance" | "gallery" | "admin-login" | "admin-gallery";
+export type AppScreen =
+  | "entrance"
+  | "gallery"
+  | "media-room"
+  | "admin-login"
+  | "admin-gallery";

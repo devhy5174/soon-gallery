@@ -34,3 +34,12 @@ export const MOVE_BOUNDS = {
   minX: -5.2, maxX: 5.2,
   minZ: -12.0, maxZ: 12.0,
 } as const;
+
+/** 미디어 룸 문 위치 — 왼쪽 벽 뒤편 (z = -10) */
+export const DOOR_ZONE = {
+  x: -6,
+  z: -10,
+  triggerX: -4.2,  // 이 X 좌표보다 왼쪽이면 문 근처
+  triggerZMin: -11.8,
+  triggerZMax: -8.2,
+} as const;

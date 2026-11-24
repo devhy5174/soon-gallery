@@ -6,13 +6,13 @@
 import "./EntranceScreen.css";
 
 interface Props {
-  /** 게스트 관람 버튼 클릭 시 호출 */
   onGuestEnter: () => void;
-  /** 관리자 입장 버튼 클릭 시 호출 */
+  /** 미디어 룸 직접 입장 */
+  onMediaEnter: () => void;
   onAdminEnter: () => void;
 }
 
-export default function EntranceScreen({ onGuestEnter, onAdminEnter }: Props) {
+export default function EntranceScreen({ onGuestEnter, onMediaEnter, onAdminEnter }: Props) {
   return (
     <div className="entrance">
       {/* 배경 장식 — 먹색 번짐 효과 (aria-hidden: 장식용이므로 스크린리더 무시) */}
@@ -53,17 +53,25 @@ export default function EntranceScreen({ onGuestEnter, onAdminEnter }: Props) {
 
         {/* 입장 버튼 그룹 */}
         <div className="entrance-actions">
-          {/* 게스트 — 로그인 없이 바로 입장 */}
+          {/* 갤러리 — 직접 걸어다니며 감상 */}
           <button
             className="btn btn-primary entrance-actions__btn"
             onClick={onGuestEnter}
           >
-            게스트 관람 시작
+            갤러리 관람
           </button>
 
-          {/* 관리자 — 인증 후 작품 등록·관리 가능 */}
+          {/* 미디어 룸 — 앉아서 자동 슬라이드쇼 감상 */}
           <button
-            className="btn btn-outline entrance-actions__btn"
+            className="btn btn-outline entrance-actions__btn entrance-actions__btn--media"
+            onClick={onMediaEnter}
+          >
+            자동 감상 (미디어 룸)
+          </button>
+
+          {/* 관리자 */}
+          <button
+            className="btn btn-outline entrance-actions__btn entrance-actions__btn--admin"
             onClick={onAdminEnter}
           >
             관리자 입장

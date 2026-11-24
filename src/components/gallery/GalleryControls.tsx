@@ -10,33 +10,36 @@ import { useRef, useEffect } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
 import * as THREE from "three";
-import { MOVE_BOUNDS } from "./constants";
+import { MOVE_BOUNDS, DOOR_ZONE } from "./constants";
 
 const MOVE_SPEED = 4.5;
 const EYE_HEIGHT = 1.7;
-/** 작품 상호작용 가능 최대 거리 */
 const MAX_INTERACT_DIST = 8;
 
 interface Props {
   onLockChange: (locked: boolean) => void;
-  /** 화면 중앙에 작품이 있을 때 해당 artworkId, 없으면 null */
   onLookingAt: (id: string | null) => void;
-  /** E 키 눌림 + 작품 조준 시 호출 */
   onInteract: (artworkId: string) => void;
+  onEnterMediaRoom: () => void;
+  /** 문 근처 여부 변경 시 HUD 힌트용 */
+  onNearDoor: (near: boolean) => void;
 }
 
 export default function GalleryControls({
   onLockChange,
   onLookingAt,
   onInteract,
+  onEnterMediaRoom,
+  onNearDoor,
 }: Props) {
   const { camera } = useThree();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
   const keys = useRef<Record<string, boolean>>({});
 
-  /** 현재 조준 중인 artworkId (useFrame → E키 핸들러에서 접근) */
   const lookingAtRef = useRef<string | null>(null);
+  /** 문 근처 여부 */
+  const nearDoorRef = useRef(false);
 
   /** 씬 초기화 후 한 번만 작품 메시를 수집 */
   const artworkMeshes = useRef<THREE.Mesh[]>([]);
@@ -65,16 +68,20 @@ export default function GalleryControls({
     return () => document.removeEventListener("pointerlockchange", handleChange);
   }, [onLockChange]);
 
-  // E 키 — 조준 중인 작품 감상
+  // 마우스 클릭 — 포인터 락 중 크로스헤어 조준 대상과 상호작용
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "KeyE" && lookingAtRef.current) {
-        onInteract(lookingAtRef.current);
+    const onClick = () => {
+      // 포인터 락이 활성 상태일 때만 처리
+      if (!document.pointerLockElement) return;
+      if (lookingAtRef.current) {
+        onInteract(lookingAtRef.current);       // 작품 클릭
+      } else if (nearDoorRef.current) {
+        onEnterMediaRoom();                      // 문 클릭
       }
     };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [onInteract]);
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [onInteract, onEnterMediaRoom]);
 
   useFrame(({ scene, raycaster }) => {
     // 작품 메시 목록 최초 1회 수집 (userData.artworkId 가 있는 평면만)
@@ -101,6 +108,16 @@ export default function GalleryControls({
     if (hitId !== lookingAtRef.current) {
       lookingAtRef.current = hitId;
       onLookingAt(hitId);
+    }
+
+    // 문 근처 여부 갱신
+    const prevNearDoor = nearDoorRef.current;
+    nearDoorRef.current = !lookingAtRef.current &&
+      camera.position.x < DOOR_ZONE.triggerX &&
+      camera.position.z > DOOR_ZONE.triggerZMin &&
+      camera.position.z < DOOR_ZONE.triggerZMax;
+    if (nearDoorRef.current !== prevNearDoor) {
+      onNearDoor(nearDoorRef.current);
     }
 
     // 포인터 락 활성 시에만 이동 처리
