@@ -5,7 +5,7 @@
  * - 하우징이 작품 방향으로 기울어져 자연스러운 갤러리 느낌
  */
 
-import { useMemo } from "react";
+import { useMemo, Fragment } from "react";
 import * as THREE from "three";
 import { ROOM } from "./constants";
 
@@ -204,10 +204,10 @@ export default function GalleryLights() {
 
       {/* ── 장식용 레일 하우징 (입구·뒤쪽 여백 채우기) ── */}
       {([10, -9] as const).map((z) => (
-        <>
-          <DecorLight key={`dl${z}`} position={[-2.5, ceilY, z]} tiltDir={1} />
-          <DecorLight key={`dr${z}`} position={[2.5, ceilY, z]} tiltDir={-1} />
-        </>
+        <Fragment key={z}>
+          <DecorLight position={[-2.5, ceilY, z]} tiltDir={1} />
+          <DecorLight position={[2.5, ceilY, z]} tiltDir={-1} />
+        </Fragment>
       ))}
 
       {/* ── 뒷벽 대형 산수화 조명 (3개 — 좌/중/우 고루 비춤) ── */}

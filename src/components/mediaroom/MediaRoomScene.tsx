@@ -372,6 +372,7 @@ export default function MediaRoomScene({
 
     const t = Math.min(1, delta * 4.5);
     camera.position.lerp(animTarget.current, t);
+    camera.lookAt(SCREEN_POS);
 
     const cam = camera as THREE.PerspectiveCamera;
     cam.fov = THREE.MathUtils.lerp(cam.fov, targetFov.current, t * 0.8);
@@ -379,6 +380,7 @@ export default function MediaRoomScene({
 
     if (camera.position.distanceTo(animTarget.current) < 0.018) {
       camera.position.copy(animTarget.current);
+      camera.lookAt(SCREEN_POS);
       cam.fov = targetFov.current;
       cam.updateProjectionMatrix();
       isAnimating.current = false;
