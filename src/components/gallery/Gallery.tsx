@@ -15,7 +15,6 @@ import GalleryControlsMobile from "./GalleryControlsMobile";
 import GalleryHUD from "./GalleryHUD";
 import MobileJoystick from "./MobileJoystick";
 import ArtworkModal from "./ArtworkModal";
-import GalleryBgm from "./GalleryBgm";
 import { ARTWORK_LIST } from "./artworkData";
 import type { ArtworkData } from "./artworkData";
 import { CAMERA_INITIAL } from "./constants";
@@ -89,7 +88,11 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
         <GalleryArtworks />
 
         {isMobile ? (
-          <GalleryControlsMobile onInteract={handleInteract} />
+          <GalleryControlsMobile
+            onInteract={handleInteract}
+            onEnterMediaRoom={handleEnterMediaRoom}
+            onNearDoor={setNearDoor}
+          />
         ) : (
           <GalleryControls
             onLockChange={setIsLocked}
@@ -109,8 +112,6 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
         onExit={onExit}
         isModalOpen={!!selectedArtwork}
       />
-
-      <GalleryBgm />
 
       {isMobile && !selectedArtwork && <MobileJoystick />}
 

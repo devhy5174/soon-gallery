@@ -14,12 +14,22 @@ import "./MediaRoom.css";
 
 interface Props {
   onExit: () => void;
+  onSeatChange?: (seated: boolean) => void;
 }
 
-export default function MediaRoom({ onExit }: Props) {
+export default function MediaRoom({ onExit, onSeatChange }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [seatedAt, setSeatedAt] = useState<[number, number, number] | null>(null);
+
+  const handleBenchSit = (pos: [number, number, number]) => {
+    setSeatedAt(pos);
+    onSeatChange?.(true);
+  };
+  const handleStandUp = () => {
+    setSeatedAt(null);
+    onSeatChange?.(false);
+  };
 
   const total = ARTWORK_LIST.length;
 
@@ -56,7 +66,7 @@ export default function MediaRoom({ onExit }: Props) {
           onAutoAdvance={handleAutoAdvance}
           isAutoPlay={isAutoPlay}
           seatedAt={seatedAt}
-          onBenchSit={(pos) => setSeatedAt(pos)}
+          onBenchSit={handleBenchSit}
         />
       </Canvas>
 
@@ -69,7 +79,7 @@ export default function MediaRoom({ onExit }: Props) {
         onPrev={goPrev}
         onNext={goNext}
         onToggleAutoPlay={() => setIsAutoPlay((v) => !v)}
-        onStandUp={() => setSeatedAt(null)}
+        onStandUp={handleStandUp}
         onExit={onExit}
       />
     </div>

@@ -9,7 +9,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { MOVE_BOUNDS } from "./constants";
+import { MOVE_BOUNDS, DOOR_ZONE } from "./constants";
 
 const MOVE_SPEED = 4.5;
 const EYE_HEIGHT = 1.7;
@@ -23,10 +23,13 @@ const TAP_MAX_DURATION = 250;
 
 interface Props {
   onInteract: (artworkId: string) => void;
+  onEnterMediaRoom: () => void;
+  onNearDoor: (near: boolean) => void;
 }
 
-export default function GalleryControlsMobile({ onInteract }: Props) {
+export default function GalleryControlsMobile({ onInteract, onEnterMediaRoom, onNearDoor }: Props) {
   const { camera } = useThree();
+  const nearDoorRef = useRef(false);
 
   /** 조이스틱 중심 위치 (고정) */
   const joystickCenter = useRef<{ x: number; y: number } | null>(null);
@@ -138,9 +141,14 @@ export default function GalleryControlsMobile({ onInteract }: Props) {
     };
   }, [isJoystickZone]);
 
-  /** 탭 위치에서 레이캐스트 → 작품 히트 시 모달 오픈 */
+  /** 탭 위치에서 레이캐스트 → 작품 히트 or 문 근처면 입장 */
   const handleTap = useCallback(
     (clientX: number, clientY: number) => {
+      // 문 근처에서 탭 → 미디어 룸 입장
+      if (nearDoorRef.current) {
+        onEnterMediaRoom();
+        return;
+      }
       if (artworkMeshes.current.length === 0) return;
       const ndcX = (clientX / window.innerWidth) * 2 - 1;
       const ndcY = -(clientY / window.innerHeight) * 2 + 1;
@@ -152,7 +160,7 @@ export default function GalleryControlsMobile({ onInteract }: Props) {
         onInteract(hit.object.userData.artworkId as string);
       }
     },
-    [camera, onInteract]
+    [camera, onInteract, onEnterMediaRoom]
   );
 
   useFrame(({ scene }) => {
@@ -193,6 +201,16 @@ export default function GalleryControlsMobile({ onInteract }: Props) {
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, MOVE_BOUNDS.minX, MOVE_BOUNDS.maxX);
     camera.position.z = THREE.MathUtils.clamp(camera.position.z, MOVE_BOUNDS.minZ, MOVE_BOUNDS.maxZ);
     camera.position.y = EYE_HEIGHT;
+
+    // 문 근접 여부 감지
+    const near =
+      camera.position.x < DOOR_ZONE.triggerX &&
+      camera.position.z > DOOR_ZONE.triggerZMin &&
+      camera.position.z < DOOR_ZONE.triggerZMax;
+    if (near !== nearDoorRef.current) {
+      nearDoorRef.current = near;
+      onNearDoor(near);
+    }
   });
 
   return null;

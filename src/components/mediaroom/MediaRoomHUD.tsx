@@ -3,7 +3,9 @@
  * 미디어 룸 오버레이 UI — 슬라이드 컨트롤 + 작품 정보
  */
 
+import { useState, useEffect } from "react";
 import type { ArtworkData } from "../gallery/artworkData";
+import { bgmStore } from "../gallery/bgmStore";
 import "./MediaRoom.css";
 
 interface Props {
@@ -17,6 +19,31 @@ interface Props {
   onToggleAutoPlay: () => void;
   onStandUp: () => void;
   onExit: () => void;
+}
+
+function BgmBtn() {
+  const [playing, setPlaying] = useState(() => bgmStore.getPlaying());
+  useEffect(() => bgmStore.subscribe(setPlaying), []);
+  return (
+    <button
+      className={`mr-controls__btn ${playing ? "mr-controls__btn--active" : ""}`}
+      onClick={() => bgmStore.toggle()}
+      aria-label={playing ? "음악 끄기" : "음악 켜기"}
+    >
+      {playing ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" />
+          <line x1="16" y1="10" x2="22" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="22" y1="10" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      )}
+    </button>
+  );
 }
 
 export default function MediaRoomHUD({
@@ -63,40 +90,43 @@ export default function MediaRoomHUD({
 
       {/* 슬라이드 컨트롤 — 앉았을 때만 표시 */}
       {isSeated && <div className="mr-controls">
-        {/* 이전 */}
+        {/* 왼쪽: 이전 */}
         <button className="mr-controls__btn" onClick={onPrev} aria-label="이전 작품">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
 
-        {/* 자동재생 토글 */}
+        {/* 가운데: 자동재생 토글 */}
         <button
           className={`mr-controls__btn mr-controls__btn--play ${isAutoPlay ? "mr-controls__btn--active" : ""}`}
           onClick={onToggleAutoPlay}
           aria-label={isAutoPlay ? "자동재생 중지" : "자동재생 시작"}
         >
           {isAutoPlay ? (
-            /* 일시정지 아이콘 */
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <rect x="6" y="4" width="4" height="16" rx="1" />
               <rect x="14" y="4" width="4" height="16" rx="1" />
             </svg>
           ) : (
-            /* 재생 아이콘 */
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
               <path d="M5 3l14 9-14 9V3z" />
             </svg>
           )}
         </button>
 
-        {/* 다음 */}
+        {/* 오른쪽: 다음 */}
         <button className="mr-controls__btn" onClick={onNext} aria-label="다음 작품">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>}
+
+      {/* 음악 버튼 — 항상 표시, 재생버튼 그룹과 같은 라인 오른쪽 끝 */}
+      <div className="mr-bgm-wrap">
+        <BgmBtn />
+      </div>
 
       {/* 진행 도트 — 앉았을 때만 표시 */}
       {isSeated && (

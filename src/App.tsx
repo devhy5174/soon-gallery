@@ -9,10 +9,12 @@ import type { AppScreen } from "./types";
 import EntranceScreen from "./components/entrance";
 import Gallery from "./components/gallery";
 import MediaRoom from "./components/mediaroom";
+import GalleryBgm from "./components/gallery/GalleryBgm";
 import "./App.css";
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>("entrance");
+  const [mediaSeated, setMediaSeated] = useState(false);
 
   return (
     <div className="app">
@@ -32,7 +34,10 @@ function App() {
       )}
 
       {screen === "media-room" && (
-        <MediaRoom onExit={() => setScreen("entrance")} />
+        <MediaRoom
+          onExit={() => { setMediaSeated(false); setScreen("gallery"); }}
+          onSeatChange={setMediaSeated}
+        />
       )}
 
       {screen === "admin-login" && (
@@ -42,6 +47,11 @@ function App() {
             ← 입장 화면으로
           </button>
         </div>
+      )}
+
+      {/* 갤러리·미디어룸 양쪽에서 음악이 유지되도록 App 레벨에서 마운트 */}
+      {(screen === "gallery" || screen === "media-room") && (
+        <GalleryBgm bottom={screen === "media-room"} mediaSeated={mediaSeated} />
       )}
     </div>
   );

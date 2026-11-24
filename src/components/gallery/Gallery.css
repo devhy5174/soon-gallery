@@ -125,6 +125,20 @@
   transition: var(--transition);
 }
 
+/* 미디어룸 — 오른쪽 하단, 재생버튼과 동일한 디자인 */
+.gallery-bgm-btn--media-alone,
+.gallery-bgm-btn--media-seated {
+  top: auto;
+  bottom: 32px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 252, 247, 0.25);
+  background: rgba(41, 39, 36, 0.55);
+  color: rgba(255, 252, 247, 0.75);
+  backdrop-filter: blur(6px);
+}
+
 .gallery-bgm-btn:hover {
   background: var(--surface);
   border-color: var(--primary);
@@ -142,8 +156,13 @@
 }
 
 @keyframes bgm-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* ========================================
@@ -162,7 +181,9 @@
   background: rgba(255, 252, 247, 0.7);
   border: 1px solid rgba(41, 39, 36, 0.4);
   pointer-events: none;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
 /* 작품 조준 시 크로스헤어 강조 */
@@ -217,8 +238,14 @@
 }
 
 @keyframes hint-fade-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* ========================================
@@ -267,8 +294,12 @@
 }
 
 @keyframes modal-bg-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .artwork-modal__card {
@@ -286,8 +317,14 @@
 }
 
 @keyframes modal-card-in {
-  from { opacity: 0; transform: translateY(20px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* 닫기 버튼 */
@@ -440,14 +477,20 @@
     width: 100%;
     height: 90dvh;
     max-height: 90dvh;
-    overflow: hidden;           /* 카드 자체는 스크롤 안 됨 */
+    overflow: hidden; /* 카드 자체는 스크롤 안 됨 */
     border-radius: 20px 20px 0 0;
   }
 
   /* 모달 열림 애니메이션 — 아래서 슬라이드 업 */
   @keyframes modal-card-in {
-    from { opacity: 0; transform: translateY(60px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* 닫기 버튼 — 그림 영역 우상단 */
@@ -476,7 +519,7 @@
   .artwork-modal__info {
     flex: 1;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;  /* iOS 부드러운 스크롤 */
+    -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
     overscroll-behavior: contain;
     padding: 0 24px 40px;
     gap: 10px;
@@ -550,8 +593,14 @@
   }
 
   @keyframes modal-card-in {
-    from { opacity: 0; transform: translateY(12px) scale(0.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   /* 그림 영역: 세로로 좁으니 캔버스 작게 */

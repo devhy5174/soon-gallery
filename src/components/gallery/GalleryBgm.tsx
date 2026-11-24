@@ -5,8 +5,10 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import "./Gallery.css";
+import { bgmStore } from "./bgmStore";
 
-export default function GalleryBgm() {
+export default function GalleryBgm({ bottom, mediaSeated }: { bottom?: boolean; mediaSeated?: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -43,19 +45,31 @@ export default function GalleryBgm() {
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
+      bgmStore.setPlaying(false);
     } else {
-      audio.play().then(() => setIsPlaying(true)).catch(() => {});
+      audio.play().then(() => { setIsPlaying(true); bgmStore.setPlaying(true); }).catch(() => {});
     }
   };
 
+  // store에 toggle 등록
+  useEffect(() => {
+    bgmStore.register(toggle);
+    bgmStore.setPlaying(isPlaying);
+    return () => bgmStore.unregister();
+  }, [isPlaying]);
+
   return (
     <>
-      {/* 오디오 엘리먼트 — UI 없음 */}
       <audio ref={audioRef} src="/audio/bgm.mp3" loop preload="auto" />
 
-      {/* 음악 토글 버튼 */}
-      <button
-        className={`gallery-bgm-btn ${isPlaying ? "gallery-bgm-btn--playing" : ""}`}
+      {/* 미디어룸에서는 HUD 컨트롤 그룹 안에 버튼이 렌더링되므로 숨김 */}
+      {!bottom && <button
+        className={[
+          "gallery-bgm-btn",
+          isPlaying ? "gallery-bgm-btn--playing" : "",
+          bottom && !mediaSeated ? "gallery-bgm-btn--media-alone" : "",
+          bottom && mediaSeated  ? "gallery-bgm-btn--media-seated" : "",
+        ].join(" ").trim()}
         onClick={toggle}
         title={isPlaying ? "음악 끄기" : "음악 켜기"}
         aria-label={isPlaying ? "배경음악 끄기" : "배경음악 켜기"}
@@ -75,7 +89,7 @@ export default function GalleryBgm() {
             <line x1="22" y1="10" x2="16" y2="16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         )}
-      </button>
+      </button>}
     </>
   );
 }
