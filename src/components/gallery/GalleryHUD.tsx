@@ -5,6 +5,7 @@
  * - 모바일: 입장 안내, 나가기 버튼, 조작 가이드
  */
 
+import { useState } from "react";
 import "./Gallery.css";
 
 interface Props {
@@ -14,6 +15,12 @@ interface Props {
   nearDoor: boolean;
   onExit: () => void;
   isModalOpen: boolean;
+  artworkIdx?: number;
+  artworkTotal?: number;
+  onActivateTour?: () => void;
+  onReturnToStart?: () => void;
+  onPrevArtwork?: () => void;
+  onNextArtwork?: () => void;
 }
 
 export default function GalleryHUD({
@@ -23,7 +30,14 @@ export default function GalleryHUD({
   nearDoor,
   onExit,
   isModalOpen,
+  artworkIdx = -1,
+  artworkTotal = 12,
+  onActivateTour,
+  onReturnToStart,
+  onPrevArtwork,
+  onNextArtwork,
 }: Props) {
+  const [navOpen, setNavOpen] = useState(false);
   const handleExit = () => {
     if (document.pointerLockElement) document.exitPointerLock();
     onExit();
@@ -36,14 +50,49 @@ export default function GalleryHUD({
         {/* 모바일 입장 안내 — 첫 진입 시 1회 표시 (isModalOpen 아닐 때) */}
         {!isModalOpen && (
           <>
-            {/* 나가기 버튼 */}
-            <button className="gallery-exit-btn" onClick={handleExit} title="입장 화면으로">
+            {/* 왼쪽 상단 버튼 — 투어 중이면 첫 자리로, 아니면 입장 화면으로 */}
+            <button
+              className="gallery-exit-btn"
+              onClick={() => {
+                if (navOpen) {
+                  setNavOpen(false);
+                  onReturnToStart?.();
+                } else {
+                  handleExit();
+                }
+              }}
+              title={navOpen ? "처음 자리로" : "입장 화면으로"}
+            >
               ✕
             </button>
 
+            {/* 하단 작품 순서 네비게이션 */}
+            {!navOpen ? (
+              <div className="gallery-artwork-nav gallery-artwork-nav--start">
+                <button
+                  className="gallery-artwork-nav__start-btn"
+                  onClick={() => { setNavOpen(true); onActivateTour?.(); }}
+                >
+                  작품 감상하기
+                </button>
+              </div>
+            ) : (
+              <div className="gallery-artwork-nav">
+                <button className="gallery-artwork-nav__btn" onClick={onPrevArtwork} aria-label="이전 작품">
+                  〈 이전
+                </button>
+                <span className="gallery-artwork-nav__count">
+                  {Math.max(0, artworkIdx) + 1} / {artworkTotal}
+                </span>
+                <button className="gallery-artwork-nav__btn" onClick={onNextArtwork} aria-label="다음 작품">
+                  다음 〉
+                </button>
+              </div>
+            )}
+
             {/* 하단 모바일 조작 가이드 */}
             <div className="gallery-controls-guide gallery-controls-guide--mobile">
-              <span>조이스틱 이동</span>
+              <span>바닥 터치 이동</span>
               <span>드래그 시점</span>
               <span>그림 터치 감상</span>
             </div>

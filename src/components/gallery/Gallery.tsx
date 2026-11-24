@@ -13,9 +13,9 @@ import GalleryArtworks from "./GalleryArtworks";
 import GalleryControls from "./GalleryControls";
 import GalleryControlsMobile from "./GalleryControlsMobile";
 import GalleryHUD from "./GalleryHUD";
-import MobileJoystick from "./MobileJoystick";
 import ArtworkModal from "./ArtworkModal";
 import { ARTWORK_LIST } from "./artworkData";
+import { VIEWPOINTS } from "./viewpoints";
 import type { ArtworkData } from "./artworkData";
 import { CAMERA_INITIAL } from "./constants";
 import "./Gallery.css";
@@ -46,6 +46,16 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
   const [lookingAt, setLookingAt] = useState<string | null>(null);
   const [nearDoor, setNearDoor] = useState(false);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkData | null>(null);
+  const [artworkIdx, setArtworkIdx] = useState(-1); // -1 = 투어 미시작
+
+  const handleActivateTour = useCallback(() => setArtworkIdx(0), []);
+  const handleReturnToStart = useCallback(() => setArtworkIdx(-1), []);
+  const handlePrevArtwork = useCallback(() => {
+    setArtworkIdx((i) => (Math.max(0, i) - 1 + VIEWPOINTS.length) % VIEWPOINTS.length);
+  }, []);
+  const handleNextArtwork = useCallback(() => {
+    setArtworkIdx((i) => (Math.max(0, i) + 1) % VIEWPOINTS.length);
+  }, []);
 
   const lookingAtRef = useRef<string | null>(null);
   const handleLookingAt = useCallback((id: string | null) => {
@@ -92,6 +102,7 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
             onInteract={handleInteract}
             onEnterMediaRoom={handleEnterMediaRoom}
             onNearDoor={setNearDoor}
+            artworkIdx={artworkIdx}
           />
         ) : (
           <GalleryControls
@@ -111,9 +122,13 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
         nearDoor={nearDoor}
         onExit={onExit}
         isModalOpen={!!selectedArtwork}
+        artworkIdx={artworkIdx}
+        artworkTotal={VIEWPOINTS.length}
+        onActivateTour={handleActivateTour}
+        onReturnToStart={handleReturnToStart}
+        onPrevArtwork={handlePrevArtwork}
+        onNextArtwork={handleNextArtwork}
       />
-
-      {isMobile && !selectedArtwork && <MobileJoystick />}
 
       {selectedArtwork && (
         <ArtworkModal artwork={selectedArtwork} onClose={handleCloseModal} />

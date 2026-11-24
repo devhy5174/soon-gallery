@@ -445,9 +445,9 @@
 ======================================== */
 
 .gallery-controls-guide--mobile {
-  /* 조이스틱(왼쪽 하단) 겹침 방지 — 오른쪽 하단으로 이동 */
   left: auto;
   right: 16px;
+  bottom: 68px;
   transform: none;
   flex-direction: column;
   align-items: flex-end;
@@ -455,6 +455,71 @@
   padding: 8px 12px;
   font-size: 11px;
   text-align: right;
+}
+
+/* ========================================
+   모바일 작품 순서 네비게이션
+======================================== */
+.gallery-artwork-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(41, 39, 36, 0.72);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 252, 247, 0.12);
+}
+
+.gallery-artwork-nav__btn {
+  color: rgba(255, 252, 247, 0.85);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 252, 247, 0.2);
+  background: rgba(255, 252, 247, 0.06);
+  transition: background 0.2s;
+}
+
+.gallery-artwork-nav__btn:active {
+  background: rgba(255, 252, 247, 0.15);
+}
+
+.gallery-artwork-nav__count {
+  color: rgba(255, 252, 247, 0.6);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.gallery-artwork-nav--start {
+  justify-content: center;
+}
+
+.gallery-artwork-nav__start-btn {
+  color: rgba(255, 252, 247, 0.92);
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  padding: 10px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 252, 247, 0.35);
+  background: rgba(255, 252, 247, 0.1);
+  transition: background 0.2s;
+}
+
+.gallery-artwork-nav__start-btn:active {
+  background: rgba(255, 252, 247, 0.2);
+}
+
+.gallery-artwork-nav__close {
+  color: rgba(255, 252, 247, 0.4);
+  font-size: 12px;
+  padding: 6px 8px;
+  margin-left: 4px;
 }
 
 /* ========================================
