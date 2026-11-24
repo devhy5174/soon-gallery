@@ -12,6 +12,20 @@
   background: #2a2420;
 }
 
+.mr-lights-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.mr-lights-overlay--off {
+  opacity: 0.92;
+}
+
 /* ========================================
    나가기 버튼
 ======================================== */
@@ -184,24 +198,39 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  width: 66px;   /* 3 슬롯(18px) + 2 gap(6px) */
+  height: 18px;
+  overflow: hidden;
   pointer-events: none;
 }
 
+.mr-dots__track {
+  display: flex;
+  gap: 6px;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.mr-dots__slot {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .mr-dots__dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: rgba(255, 252, 247, 0.3);
-  transition: var(--transition);
+  transition: width 0.35s, border-radius 0.35s, background 0.35s;
 }
 
 .mr-dots__dot--active {
-  width: 20px;
-  border-radius: 3px;
-  background: rgba(255, 252, 247, 0.85);
+  width: 18px;
+  border-radius: 4px;
+  background: rgba(255, 252, 247, 0.88);
 }
 
 /* ========================================

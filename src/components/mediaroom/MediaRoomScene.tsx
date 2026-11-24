@@ -29,12 +29,31 @@ const ART_W = ART_H * (4 / 5);  // 2.56
 
 // ─────────────────────────────────────────────────────────────
 /** 슬라이드쇼 — 뒷벽에 직접 투사 */
+function drawThankYou(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = "#f8f4ed";
+  ctx.fillRect(0, 0, 800, 1000);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#292724";
+  ctx.font = "300 88px Georgia, serif";
+  ctx.fillText("감사합니다", 400, 440);
+  ctx.font = "300 36px sans-serif";
+  ctx.fillStyle = "#8b7360";
+  ctx.fillText("Thank you", 400, 520);
+  ctx.fillStyle = "rgba(166,75,60,0.75)";
+  ctx.fillRect(376, 580, 48, 48);
+  ctx.fillStyle = "#f8f4ed";
+  ctx.font = "bold 24px serif";
+  ctx.fillText("순", 400, 612);
+}
+
 function ArtworkDisplay({
   currentIndex,
+  isThankYou,
   onAutoAdvance,
   isAutoPlay,
 }: {
   currentIndex: number;
+  isThankYou: boolean;
   onAutoAdvance: () => void;
   isAutoPlay: boolean;
 }) {
@@ -98,20 +117,30 @@ function ArtworkDisplay({
     }
   }, [currentIndex]);
 
+  // 감사합니다 화면 → 페이드 트리거 (특수 index -1 사용)
+  const THANK_YOU_IDX = -1;
+  useEffect(() => {
+    targetIndex.current = isThankYou ? THANK_YOU_IDX : currentIndex;
+    if (phase.current === "show") phase.current = "fade-out";
+    showTimer.current = 0;
+  }, [isThankYou]);
+
   const updateTexture = (idx: number) => {
     if (!canvasRef.current || !textureRef.current) return;
     const ctx = canvasRef.current.getContext("2d")!;
-    const artwork = ARTWORK_LIST[idx];
-    const img = imgCache.current.get(artwork.artType);
-    if (img) {
-      // 이미지 파일 있으면 비율 유지하며 canvas에 그림
-      ctx.clearRect(0, 0, 800, 1000);
-      const scale = Math.min(800 / img.naturalWidth, 1000 / img.naturalHeight);
-      const dw = img.naturalWidth * scale;
-      const dh = img.naturalHeight * scale;
-      ctx.drawImage(img, (800 - dw) / 2, (1000 - dh) / 2, dw, dh);
-    } else {
-      drawInkArt(ctx, 800, 1000, artwork.artType);
+    if (idx === THANK_YOU_IDX) return; // 프레임 숨겨져 있으므로 불필요
+    {
+      const artwork = ARTWORK_LIST[idx];
+      const img = imgCache.current.get(artwork.artType);
+      if (img) {
+        ctx.clearRect(0, 0, 800, 1000);
+        const scale = Math.min(800 / img.naturalWidth, 1000 / img.naturalHeight);
+        const dw = img.naturalWidth * scale;
+        const dh = img.naturalHeight * scale;
+        ctx.drawImage(img, (800 - dw) / 2, (1000 - dh) / 2, dw, dh);
+      } else {
+        drawInkArt(ctx, 800, 1000, artwork.artType);
+      }
     }
     textureRef.current.needsUpdate = true;
     displayedIndex.current = idx;
@@ -151,13 +180,13 @@ function ArtworkDisplay({
   const frameD = 0.08;
 
   return (
-    <group position={[0, H / 2, -6.97]}>
-      {/* 베이지 배킹 패널 (팝업 카드 배경) */}
+    <group position={[0, H / 2, -6.97]} visible={!isThankYou}>
+      {/* 베이지 배킹 패널 */}
       <mesh position={[0, 0, -0.02]}>
         <planeGeometry args={[ART_W + frameT * 2 + 0.5, ART_H + frameT * 2 + 0.5]} />
         <meshStandardMaterial color="#f0e9df" roughness={0.9} />
       </mesh>
-      {/* 원목 액자 (#8b6845 — 팝업 frame-inner 색상) */}
+      {/* 원목 액자 */}
       <mesh>
         <boxGeometry args={[ART_W + frameT * 2, ART_H + frameT * 2, frameD]} />
         <meshStandardMaterial color="#8b6845" roughness={0.5} />
@@ -168,6 +197,52 @@ function ArtworkDisplay({
         <meshBasicMaterial ref={matRef} transparent opacity={1} />
       </mesh>
     </group>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+/** 감사합니다 — 벽에 직접 텍스트 투영 */
+function ThankYouWall({ visible }: { visible: boolean }) {
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
+  const opacity = useRef(0);
+
+  const texture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800;
+    canvas.height = 400;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, 800, 400);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(41, 39, 36, 0.9)";
+    ctx.font = "300 96px Georgia, serif";
+    ctx.fillText("감사합니다", 400, 180);
+    ctx.font = "300 38px sans-serif";
+    ctx.fillStyle = "rgba(100, 80, 60, 0.75)";
+    ctx.fillText("Thank you", 400, 250);
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
+  useFrame((_, delta) => {
+    if (!matRef.current) return;
+    opacity.current = THREE.MathUtils.clamp(
+      opacity.current + (visible ? 1 : -1) * delta * 1.5,
+      0, 1,
+    );
+    matRef.current.opacity = opacity.current;
+  });
+
+  return (
+    <mesh position={[0, H / 2, -6.95]}>
+      <planeGeometry args={[4.0, 2.0]} />
+      <meshStandardMaterial
+        ref={matRef}
+        map={texture}
+        transparent
+        opacity={0}
+        roughness={0.9}
+        depthWrite={false}
+      />
+    </mesh>
   );
 }
 
@@ -335,6 +410,7 @@ function Bench({
 // ─────────────────────────────────────────────────────────────
 interface Props {
   currentIndex: number;
+  isThankYou?: boolean;
   onAutoAdvance: () => void;
   isAutoPlay: boolean;
   seatedAt: [number, number, number] | null;
@@ -343,6 +419,7 @@ interface Props {
 
 export default function MediaRoomScene({
   currentIndex,
+  isThankYou = false,
   onAutoAdvance,
   isAutoPlay,
   seatedAt,
@@ -476,9 +553,11 @@ export default function MediaRoomScene({
       {/* ── 작품 투사 (뒷벽 직접) ── */}
       <ArtworkDisplay
         currentIndex={currentIndex}
+        isThankYou={isThankYou}
         onAutoAdvance={onAutoAdvance}
         isAutoPlay={isAutoPlay}
       />
+      <ThankYouWall visible={isThankYou} />
 
       {/* ── 벤치 ── */}
       <Bench position={[0, 0, 1.5]} onSit={() => onBenchSit([0, 1.0, 1.9])} isSeated={seatedAt !== null} />

@@ -4,8 +4,8 @@
 
 /** 방 치수 (갤러리보다 아늑한 소형 극장) */
 export const ROOM = {
-  width: 10,   // x: -5 ~ +5
-  depth: 14,   // z: -7 ~ +7
+  width: 10, // x: -5 ~ +5
+  depth: 14, // z: -7 ~ +7
   height: 3.6, // y: 0 ~ 3.6
 } as const;
 

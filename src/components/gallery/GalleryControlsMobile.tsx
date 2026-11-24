@@ -39,10 +39,14 @@ export default function GalleryControlsMobile({
   const destinationRef = useRef<THREE.Vector3 | null>(null);
   const targetYawRef = useRef<number | null>(null);
 
-  /** 뷰포인트 애니메이션 */
+  /** 뷰포인트 애니메이션 — 고정 duration ease-out */
   const vpAnim = useRef<{
+    startPos: THREE.Vector3;
+    startQuat: THREE.Quaternion;
     targetPos: THREE.Vector3;
     targetQuat: THREE.Quaternion;
+    elapsed: number;
+    duration: number;
   } | null>(null);
 
   /** 드래그 시점 */
@@ -70,14 +74,25 @@ export default function GalleryControlsMobile({
   useEffect(() => {
     if (isFirstMount.current) { isFirstMount.current = false; return; }
 
+    const cam = cameraRef.current;
+    const startPos = cam.position.clone();
+    const startQuat = cam.quaternion.clone();
+
+    const makeQuat = (pos: THREE.Vector3, lookAt: THREE.Vector3) => {
+      const m = new THREE.Matrix4();
+      m.lookAt(pos, lookAt, new THREE.Vector3(0, 1, 0));
+      return new THREE.Quaternion().setFromRotationMatrix(m);
+    };
+
     // artworkIdx === -1: 초기 위치로 복귀
     if (artworkIdx === -1) {
       const targetPos = new THREE.Vector3(...CAMERA_INITIAL.position);
-      const lookAt = new THREE.Vector3(0, 1.7, -1);
-      const m = new THREE.Matrix4();
-      m.lookAt(targetPos, lookAt, new THREE.Vector3(0, 1, 0));
       destinationRef.current = null;
-      vpAnim.current = { targetPos, targetQuat: new THREE.Quaternion().setFromRotationMatrix(m) };
+      vpAnim.current = {
+        startPos, startQuat, targetPos,
+        targetQuat: makeQuat(targetPos, new THREE.Vector3(0, 1.7, -1)),
+        elapsed: 0, duration: 1.8,
+      };
       return;
     }
 
@@ -85,17 +100,13 @@ export default function GalleryControlsMobile({
     if (!vp) return;
 
     const targetPos = new THREE.Vector3(...vp.position);
-    const targetPos3 = new THREE.Vector3(...vp.lookAt);
-
-    // lookAt → 쿼터니언 계산
-    const m = new THREE.Matrix4();
-    m.lookAt(targetPos, targetPos3, new THREE.Vector3(0, 1, 0));
-    const targetQuat = new THREE.Quaternion().setFromRotationMatrix(m);
-
-    // 바닥 탭 목적지 취소 후 뷰포인트 시작
     destinationRef.current = null;
     targetYawRef.current = null;
-    vpAnim.current = { targetPos, targetQuat };
+    vpAnim.current = {
+      startPos, startQuat, targetPos,
+      targetQuat: makeQuat(targetPos, new THREE.Vector3(...vp.lookAt)),
+      elapsed: 0, duration: 1.8,
+    };
   }, [artworkIdx]);
 
   const handleTap = useCallback(
@@ -222,20 +233,23 @@ export default function GalleryControlsMobile({
       meshScanDone.current = true;
     }
 
-    // ── 뷰포인트 애니메이션 (우선순위 높음) ──────────────
+    // ── 뷰포인트 애니메이션 — ease-out cubic, 고정 duration ──
+    // [디버깅 기록]
+    // lerp/slerp 방식은 점근적으로 목표에 접근하므로 임계값 도달 시
+    // camera.quaternion → euler → setFromEuler 변환에서 미세한 불일치가 발생,
+    // 이것이 애니메이션 완료 직전 화면이 살짝 튀는 현상의 원인.
+    // 해결: 고정 duration(t: 0→1)으로 정확히 완주하는 ease-out 방식 사용.
+    // t=1 도달 시 카메라가 이미 정확한 위치이므로 스냅 불필요.
     if (vpAnim.current) {
-      const { targetPos, targetQuat } = vpAnim.current;
-      const speed = Math.min(delta * 2.5, 1);
+      vpAnim.current.elapsed += delta;
+      const t = Math.min(vpAnim.current.elapsed / vpAnim.current.duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
 
-      camera.position.lerp(targetPos, speed);
-      camera.quaternion.slerp(targetQuat, speed);
+      camera.position.lerpVectors(vpAnim.current.startPos, vpAnim.current.targetPos, ease);
+      camera.quaternion.slerpQuaternions(vpAnim.current.startQuat, vpAnim.current.targetQuat, ease);
+      euler.current.setFromQuaternion(camera.quaternion, "YXZ");
 
-      const posClose = camera.position.distanceTo(targetPos) < 0.04;
-      const rotClose = camera.quaternion.angleTo(targetQuat) < 0.015;
-      if (posClose && rotClose) {
-        camera.position.copy(targetPos);
-        camera.quaternion.copy(targetQuat);
-        euler.current.setFromQuaternion(camera.quaternion, "YXZ");
+      if (t >= 1) {
         vpAnim.current = null;
       }
       camera.position.y = EYE_HEIGHT;

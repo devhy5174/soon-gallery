@@ -14,6 +14,7 @@ interface Props {
   total: number;
   isAutoPlay: boolean;
   isSeated: boolean;
+  isThankYou?: boolean;
   onPrev: () => void;
   onNext: () => void;
   onToggleAutoPlay: () => void;
@@ -52,6 +53,7 @@ export default function MediaRoomHUD({
   total,
   isAutoPlay,
   isSeated,
+  isThankYou = false,
   onPrev,
   onNext,
   onToggleAutoPlay,
@@ -80,9 +82,10 @@ export default function MediaRoomHUD({
         <p className="mr-sit-hint">의자를 클릭하여 감상하세요</p>
       )}
 
-      {/* 작품 정보 — 앉았을 때만 표시 */}
+
+      {/* 작품 정보 — 앉았을 때만 표시, 감사합니다 시 페이드아웃 */}
       {isSeated && (
-        <div className="mr-info">
+        <div className="mr-info" style={{ opacity: isThankYou ? 0 : 1, transition: "opacity 0.8s ease" }}>
           <p className="mr-info__title">{artwork.title}</p>
           <p className="mr-info__title-en">{artwork.titleEn}</p>
         </div>
@@ -90,14 +93,11 @@ export default function MediaRoomHUD({
 
       {/* 슬라이드 컨트롤 — 앉았을 때만 표시 */}
       {isSeated && <div className="mr-controls">
-        {/* 왼쪽: 이전 */}
         <button className="mr-controls__btn" onClick={onPrev} aria-label="이전 작품">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-
-        {/* 가운데: 자동재생 토글 */}
         <button
           className={`mr-controls__btn mr-controls__btn--play ${isAutoPlay ? "mr-controls__btn--active" : ""}`}
           onClick={onToggleAutoPlay}
@@ -114,8 +114,6 @@ export default function MediaRoomHUD({
             </svg>
           )}
         </button>
-
-        {/* 오른쪽: 다음 */}
         <button className="mr-controls__btn" onClick={onNext} aria-label="다음 작품">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -131,14 +129,16 @@ export default function MediaRoomHUD({
       {/* 진행 도트 — 앉았을 때만 표시 */}
       {isSeated && (
         <div className="mr-dots" role="tablist" aria-label="작품 목록">
-          {Array.from({ length: total }).map((_, i) => (
-            <div
-              key={i}
-              className={`mr-dots__dot ${i === currentIndex ? "mr-dots__dot--active" : ""}`}
-              role="tab"
-              aria-selected={i === currentIndex}
-            />
-          ))}
+          <div
+            className="mr-dots__track"
+            style={{ transform: `translateX(${24 - currentIndex * 24}px)` }}
+          >
+            {Array.from({ length: total }).map((_, i) => (
+              <div key={i} className="mr-dots__slot" role="tab" aria-selected={i === currentIndex}>
+                <div className={`mr-dots__dot ${i === currentIndex ? "mr-dots__dot--active" : ""}`} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </>
