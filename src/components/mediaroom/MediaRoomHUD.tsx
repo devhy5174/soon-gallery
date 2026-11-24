@@ -11,9 +11,11 @@ interface Props {
   currentIndex: number;
   total: number;
   isAutoPlay: boolean;
+  isSeated: boolean;
   onPrev: () => void;
   onNext: () => void;
   onToggleAutoPlay: () => void;
+  onStandUp: () => void;
   onExit: () => void;
 }
 
@@ -22,9 +24,11 @@ export default function MediaRoomHUD({
   currentIndex,
   total,
   isAutoPlay,
+  isSeated,
   onPrev,
   onNext,
   onToggleAutoPlay,
+  onStandUp,
   onExit,
 }: Props) {
   return (
@@ -34,11 +38,23 @@ export default function MediaRoomHUD({
         ← 갤러리
       </button>
 
-      {/* 작품 정보 — 하단 중앙 */}
-      <div className="mr-info">
-        <p className="mr-info__title">{artwork.title}</p>
-        <p className="mr-info__title-en">{artwork.titleEn}</p>
-      </div>
+      {/* 앉아 있을 때 — 일어서기 버튼 */}
+      {isSeated && (
+        <button className="mr-standup-btn" onClick={onStandUp} title="일어서기">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ marginRight: 5 }}>
+            <path d="M12 19V5m-7 7 7-7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          일어서기
+        </button>
+      )}
+
+      {/* 작품 정보 — 앉았을 때만 표시 */}
+      {isSeated && (
+        <div className="mr-info">
+          <p className="mr-info__title">{artwork.title}</p>
+          <p className="mr-info__title-en">{artwork.titleEn}</p>
+        </div>
+      )}
 
       {/* 슬라이드 컨트롤 — 하단 */}
       <div className="mr-controls">

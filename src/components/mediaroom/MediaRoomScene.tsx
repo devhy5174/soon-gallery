@@ -1,13 +1,15 @@
 /**
  * MediaRoomScene
- * 미디어 룸 3D 씬 — 방 구조 + 슬라이드쇼 스크린 + 조명
+ * 미디어 룸 3D 씬
+ * - 천장 빔프로젝터 모델 + 뒷벽에 직접 투사
+ * - 벤치 클릭 시 앉기 애니메이션
  */
 
-import { useRef, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { useRef, useEffect, useState, useMemo } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
-import { ROOM, CAMERA_TARGET } from "./constants";
+import { ROOM, CAMERA_POS, CAMERA_TARGET } from "./constants";
 import { drawInkArt } from "../gallery/artDrawings";
 import { ARTWORK_LIST } from "../gallery/artworkData";
 
@@ -15,7 +17,18 @@ const W = ROOM.width;
 const D = ROOM.depth;
 const H = ROOM.height;
 
-/** 슬라이드쇼 스크린 — 작품 자동 전환 + 페이드 애니메이션 */
+/** 투사 중심 (OrbitControls 타겟 & 카메라 복귀 기준) */
+const SCREEN_POS = new THREE.Vector3(0, H / 2, -6.98);
+const STAND_POS  = new THREE.Vector3(...CAMERA_POS);
+const STAND_FOV  = 65;
+const SEATED_FOV = 50;
+
+// 작품 투사 크기 (4:5 세로 비율)
+const ART_H = H - 0.4;          // 3.2
+const ART_W = ART_H * (4 / 5);  // 2.56
+
+// ─────────────────────────────────────────────────────────────
+/** 슬라이드쇼 — 뒷벽에 직접 투사 */
 function ArtworkDisplay({
   currentIndex,
   onAutoAdvance,
@@ -25,22 +38,20 @@ function ArtworkDisplay({
   onAutoAdvance: () => void;
   isAutoPlay: boolean;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const matRef = useRef<THREE.MeshBasicMaterial>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const matRef   = useRef<THREE.MeshBasicMaterial>(null);
+  const canvasRef  = useRef<HTMLCanvasElement | null>(null);
   const textureRef = useRef<THREE.CanvasTexture | null>(null);
 
-  /** ref 기반 페이드 상태 (useFrame에서 직접 조작) */
-  const opacity = useRef(1);
-  const phase = useRef<"show" | "fade-out" | "fade-in">("show");
-  const showTimer = useRef(0);
-  const targetIndex = useRef(currentIndex);
+  const opacity        = useRef(1);
+  const phase          = useRef<"show" | "fade-out" | "fade-in">("show");
+  const showTimer      = useRef(0);
+  const targetIndex    = useRef(currentIndex);
   const displayedIndex = useRef(currentIndex);
 
   // 초기 텍스처 생성
   useEffect(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 800;
+    canvas.width  = 800;
     canvas.height = 1000;
     canvasRef.current = canvas;
     const ctx = canvas.getContext("2d")!;
@@ -53,7 +64,7 @@ function ArtworkDisplay({
     }
   }, []);
 
-  // 외부 index 변경 감지 → 페이드 트리거
+  // 외부 index 변경 → 페이드 트리거
   useEffect(() => {
     if (currentIndex !== displayedIndex.current) {
       targetIndex.current = currentIndex;
@@ -78,7 +89,7 @@ function ArtworkDisplay({
       if (isAutoPlay) {
         showTimer.current += delta;
         if (showTimer.current > 8) {
-          phase.current = "fade-out";
+          phase.current   = "fade-out";
           showTimer.current = 0;
           onAutoAdvance();
         }
@@ -89,10 +100,10 @@ function ArtworkDisplay({
         updateTexture(targetIndex.current);
         phase.current = "fade-in";
       }
-    } else if (phase.current === "fade-in") {
+    } else {
       opacity.current = Math.min(1, opacity.current + delta * 2.5);
       if (opacity.current >= 1) {
-        phase.current = "show";
+        phase.current   = "show";
         showTimer.current = 0;
       }
     }
@@ -101,21 +112,156 @@ function ArtworkDisplay({
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 2.1, -6.95]}>
-      <planeGeometry args={[3.6, 4.5]} />
+    // 벽에서 살짝 앞으로 빼서 z-fighting 방지
+    <mesh position={[0, H / 2, -6.98]}>
+      <planeGeometry args={[ART_W, ART_H]} />
       <meshBasicMaterial ref={matRef} transparent opacity={1} />
     </mesh>
   );
 }
 
-/** 나무 벤치 */
-function Bench({ position }: { position: [number, number, number] }) {
+// ─────────────────────────────────────────────────────────────
+/** 천장 빔프로젝터 */
+function Projector() {
+  return (
+    <group position={[0, H - 0.06, -1.9]}>
+      {/* 천장 마운트 암 */}
+      <mesh position={[0, 0.09, 0]}>
+        <boxGeometry args={[0.07, 0.18, 0.07]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.4} metalness={0.4} />
+      </mesh>
+      {/* 본체 */}
+      <mesh>
+        <boxGeometry args={[0.36, 0.13, 0.5]} />
+        <meshStandardMaterial color="#1f1f1f" roughness={0.25} metalness={0.55} />
+      </mesh>
+      {/* 렌즈 하우징 */}
+      <mesh position={[0, -0.01, -0.28]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.052, 0.072, 0.1, 20]} />
+        <meshStandardMaterial color="#0d0d0d" roughness={0.1} metalness={0.85} />
+      </mesh>
+      {/* 렌즈 유리 */}
+      <mesh position={[0, -0.01, -0.34]}>
+        <circleGeometry args={[0.044, 20]} />
+        <meshBasicMaterial color="#2255cc" transparent opacity={0.85} />
+      </mesh>
+      {/* 측면 환기구 */}
+      {([-0.19, 0.19] as number[]).map((x) => (
+        <mesh key={x} position={[x, 0, 0.02]}>
+          <boxGeometry args={[0.01, 0.09, 0.38]} />
+          <meshStandardMaterial color="#2d2d2d" roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** 프로젝터 빔 (투명 사각뿔) */
+function ProjectorBeam() {
+  // 렌즈 위치 → 작품 중심까지 비스듬히 내려오는 빛
+  // 렌즈: [0, 3.5, -2.2]  작품: [0, 1.8, -6.98]
+  // 중간점: [0, 2.65, -4.59]  회전각(x): ~atan2(4.78, 1.7) ≈ 1.23 rad
+  return (
+    <mesh
+      position={[0, 2.65, -4.59]}
+      rotation={[1.23, 0, 0]}
+      renderOrder={-1}
+    >
+      {/* segments=4 → 사각뿔 모양 */}
+      <coneGeometry args={[ART_W * 0.52, 5.0, 4, 1, true]} />
+      <meshBasicMaterial
+        color="#fffce8"
+        transparent
+        opacity={0.04}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+/** 나무 벤치 — 클릭 시 앉기 */
+function Bench({
+  position,
+  onSit,
+  isSeated,
+}: {
+  position: [number, number, number];
+  onSit: () => void;
+  isSeated: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
+
   return (
     <group position={position}>
-      <mesh position={[0, 0.44, 0]} castShadow receiveShadow>
+      {/* 앉기 전에만 보이는 안내 문구 */}
+      {!isSeated && (
+        <Html center position={[0, 0.95, 0]} style={{ pointerEvents: "none" }}>
+          <div style={{
+            color: "rgba(180,160,140,0.75)",
+            fontSize: "11px",
+            letterSpacing: "1.2px",
+            whiteSpace: "nowrap",
+            textAlign: "center",
+            lineHeight: "1.6",
+            userSelect: "none",
+          }}>
+            클릭하여 앉기<br />
+            <span style={{ fontSize: "10px", opacity: 0.7 }}>작품 감상</span>
+          </div>
+        </Html>
+      )}
+
+      {/* 호버 시 하이라이트 힌트 */}
+      {hovered && (
+        <Html center position={[0, 1.15, 0]} style={{ pointerEvents: "none" }}>
+          <div style={{
+            background: "rgba(41,39,36,0.78)",
+            color: "rgba(255,252,247,0.92)",
+            padding: "4px 10px",
+            fontSize: "12px",
+            borderRadius: "4px",
+            whiteSpace: "nowrap",
+            letterSpacing: "1px",
+          }}>
+            앉기
+          </div>
+        </Html>
+      )}
+
+      <mesh
+        position={[0, 0.44, 0]}
+        castShadow
+        receiveShadow
+        onPointerOver={() => {
+          document.body.style.cursor = "pointer";
+          setHovered(true);
+          if (matRef.current) matRef.current.emissiveIntensity = 0.14;
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "auto";
+          setHovered(false);
+          if (matRef.current) matRef.current.emissiveIntensity = 0;
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          document.body.style.cursor = "auto";
+          setHovered(false);
+          onSit();
+        }}
+      >
         <boxGeometry args={[2.2, 0.07, 0.42]} />
-        <meshStandardMaterial color="#e8ddd0" roughness={0.55} />
+        <meshStandardMaterial
+          ref={matRef}
+          color="#e8ddd0"
+          roughness={0.55}
+          emissive="#ffffff"
+          emissiveIntensity={0}
+        />
       </mesh>
+
       {(
         [[-0.9, -0.17], [0.9, -0.17], [-0.9, 0.17], [0.9, 0.17]] as [number, number][]
       ).map(([x, z], i) => (
@@ -128,38 +274,88 @@ function Bench({ position }: { position: [number, number, number] }) {
   );
 }
 
-/** 스크린 액자 */
-function ScreenFrame() {
-  return (
-    <group position={[0, 2.1, -6.9]}>
-      {/* 외곽 액자 */}
-      <mesh receiveShadow>
-        <boxGeometry args={[3.76, 4.76, 0.08]} />
-        <meshStandardMaterial color="#8b6845" roughness={0.55} />
-      </mesh>
-      {/* 내부 흰 매트 */}
-      <mesh position={[0, 0, 0.041]}>
-        <planeGeometry args={[3.6, 4.5]} />
-        <meshStandardMaterial color="#f5f0e8" roughness={0.95} />
-      </mesh>
-    </group>
-  );
-}
-
+// ─────────────────────────────────────────────────────────────
 interface Props {
   currentIndex: number;
   onAutoAdvance: () => void;
   isAutoPlay: boolean;
+  seatedAt: [number, number, number] | null;
+  onBenchSit: (pos: [number, number, number]) => void;
 }
 
-export default function MediaRoomScene({ currentIndex, onAutoAdvance, isAutoPlay }: Props) {
+export default function MediaRoomScene({
+  currentIndex,
+  onAutoAdvance,
+  isAutoPlay,
+  seatedAt,
+  onBenchSit,
+}: Props) {
+  const { camera } = useThree();
+  const controlsRef = useRef<any>(null);
+
+  const animTarget   = useRef(new THREE.Vector3(...CAMERA_POS));
+  const targetFov    = useRef(STAND_FOV);
+  const isAnimating  = useRef(false);
+  const isFirstMount = useRef(true);
+
+  /**
+   * 프로젝터 스포트라이트 — 프로젝터 위치에서 뒷벽 작품을 조준
+   * primitive로 target을 scene에 추가해야 Three.js가 인식
+   */
+  const spotlight = useMemo(() => {
+    const light = new THREE.SpotLight("#fff8f0", 55);
+    light.angle      = 0.38;
+    light.penumbra   = 0.3;
+    light.castShadow = true;
+    light.target.position.set(0, H / 2, -6.98);
+    return light;
+  }, []);
+
+  // seatedAt 변경 → 카메라 애니메이션
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    const pos = seatedAt ? new THREE.Vector3(...seatedAt) : STAND_POS.clone();
+    animTarget.current  = pos;
+    targetFov.current   = seatedAt ? SEATED_FOV : STAND_FOV;
+    isAnimating.current = true;
+    if (controlsRef.current) controlsRef.current.enabled = false;
+  }, [seatedAt]);
+
+  useFrame((_, delta) => {
+    if (!isAnimating.current) return;
+
+    const t = Math.min(1, delta * 4.5);
+    camera.position.lerp(animTarget.current, t);
+
+    const cam = camera as THREE.PerspectiveCamera;
+    cam.fov = THREE.MathUtils.lerp(cam.fov, targetFov.current, t * 0.8);
+    cam.updateProjectionMatrix();
+
+    if (camera.position.distanceTo(animTarget.current) < 0.018) {
+      camera.position.copy(animTarget.current);
+      cam.fov = targetFov.current;
+      cam.updateProjectionMatrix();
+      isAnimating.current = false;
+
+      if (controlsRef.current) {
+        controlsRef.current.target.copy(SCREEN_POS);
+        controlsRef.current.enabled = true;
+        controlsRef.current.update();
+      }
+    }
+  });
+
   return (
     <>
-      {/* OrbitControls — 자리에 앉아 고개만 돌리는 느낌 */}
       <OrbitControls
+        ref={controlsRef}
         target={CAMERA_TARGET}
         enablePan={false}
         enableZoom={false}
+        enableRotate={seatedAt === null}
         minAzimuthAngle={-Math.PI / 3}
         maxAzimuthAngle={Math.PI / 3}
         minPolarAngle={Math.PI / 3}
@@ -169,47 +365,37 @@ export default function MediaRoomScene({ currentIndex, onAutoAdvance, isAutoPlay
       />
 
       {/* ── 조명 ── */}
-      <ambientLight intensity={0.2} color="#fff4e0" />
-      {/* 스크린 조명 */}
-      <spotLight
-        position={[0, H - 0.2, -3]}
-        target-position={[0, 2.1, -7]}
-        intensity={30}
-        angle={0.55}
-        penumbra={0.6}
-        color="#fff8ef"
-        castShadow
-      />
-      {/* 은은한 전체 조명 */}
-      <pointLight position={[0, H - 0.3, 2]} intensity={4} distance={8} color="#ffe8c0" />
+      <ambientLight intensity={0.25} color="#fff4e0" />
+
+      {/* 프로젝터에서 뒷벽으로 향하는 스포트라이트 */}
+      <primitive object={spotlight} position={[0, H - 0.14, -1.9]} />
+      <primitive object={spotlight.target} />
+
+      {/* 좌석 쪽 간접 조명 */}
+      <pointLight position={[0, H - 0.3, 2]} intensity={3} distance={8} color="#ffe8c0" />
 
       {/* ── 방 구조 ── */}
-      {/* 바닥 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
         <meshStandardMaterial color="#c0956a" roughness={0.4} />
       </mesh>
-      {/* 천장 */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]}>
         <planeGeometry args={[W, D]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.95} />
       </mesh>
-      {/* 뒷벽 (스크린) */}
+      {/* 뒷벽 — 밝은 아이보리로 투사된 그림이 선명하게 보임 */}
       <mesh position={[0, H / 2, -D / 2]} receiveShadow>
         <planeGeometry args={[W, H]} />
-        <meshStandardMaterial color="#ede5d8" roughness={0.9} />
+        <meshStandardMaterial color="#f0ebe2" roughness={0.88} />
       </mesh>
-      {/* 앞벽 (갤러리 연결 쪽) */}
       <mesh position={[0, H / 2, D / 2]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[W, H]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.9} />
       </mesh>
-      {/* 왼쪽 벽 */}
       <mesh position={[-W / 2, H / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[D, H]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.9} />
       </mesh>
-      {/* 오른쪽 벽 */}
       <mesh position={[W / 2, H / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[D, H]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.9} />
@@ -223,10 +409,11 @@ export default function MediaRoomScene({ currentIndex, onAutoAdvance, isAutoPlay
         </mesh>
       ))}
 
-      {/* ── 스크린 액자 ── */}
-      <ScreenFrame />
+      {/* ── 빔프로젝터 ── */}
+      <Projector />
+      <ProjectorBeam />
 
-      {/* ── 슬라이드쇼 ── */}
+      {/* ── 작품 투사 (뒷벽 직접) ── */}
       <ArtworkDisplay
         currentIndex={currentIndex}
         onAutoAdvance={onAutoAdvance}
@@ -234,8 +421,8 @@ export default function MediaRoomScene({ currentIndex, onAutoAdvance, isAutoPlay
       />
 
       {/* ── 벤치 ── */}
-      <Bench position={[0, 0, 1.5]} />
-      <Bench position={[0, 0, 3.8]} />
+      <Bench position={[0, 0, 1.5]} onSit={() => onBenchSit([0, 1.0, 1.9])} isSeated={seatedAt !== null} />
+      <Bench position={[0, 0, 3.8]} onSit={() => onBenchSit([0, 1.0, 4.2])} isSeated={seatedAt !== null} />
     </>
   );
 }
