@@ -147,12 +147,27 @@ function ArtworkDisplay({
     matRef.current.opacity = opacity.current;
   });
 
+  const frameT = 0.1;
+  const frameD = 0.08;
+
   return (
-    // 벽에서 살짝 앞으로 빼서 z-fighting 방지
-    <mesh position={[0, H / 2, -6.98]}>
-      <planeGeometry args={[ART_W, ART_H]} />
-      <meshBasicMaterial ref={matRef} transparent opacity={1} />
-    </mesh>
+    <group position={[0, H / 2, -6.97]}>
+      {/* 베이지 배킹 패널 (팝업 카드 배경) */}
+      <mesh position={[0, 0, -0.02]}>
+        <planeGeometry args={[ART_W + frameT * 2 + 0.5, ART_H + frameT * 2 + 0.5]} />
+        <meshStandardMaterial color="#f0e9df" roughness={0.9} />
+      </mesh>
+      {/* 원목 액자 (#8b6845 — 팝업 frame-inner 색상) */}
+      <mesh>
+        <boxGeometry args={[ART_W + frameT * 2, ART_H + frameT * 2, frameD]} />
+        <meshStandardMaterial color="#8b6845" roughness={0.5} />
+      </mesh>
+      {/* 작품 */}
+      <mesh position={[0, 0, frameD / 2 + 0.003]}>
+        <planeGeometry args={[ART_W, ART_H]} />
+        <meshBasicMaterial ref={matRef} transparent opacity={1} />
+      </mesh>
+    </group>
   );
 }
 
