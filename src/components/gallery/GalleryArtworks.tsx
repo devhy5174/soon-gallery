@@ -4,7 +4,7 @@
  * 각 작품 평면에 userData.artworkId를 설정하여 레이캐스트 식별을 지원한다
  */
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import * as THREE from "three";
 import { createArtTexture, drawInkArt } from "./artDrawings";
 import { ARTWORK_LIST } from "./artworkData";
@@ -16,18 +16,48 @@ function ArtFrame({
   artType,
   position,
   rotation,
+  imageUrl,
 }: {
   artworkId: string;
   artType: Parameters<typeof createArtTexture>[0];
   position: [number, number, number];
   rotation: [number, number, number];
+  imageUrl?: string;
 }) {
   const artW = 1.1;
   const artH = 1.4;
   const frameT = 0.055;
   const frameD = 0.07;
 
-  const texture = useMemo(() => createArtTexture(artType), [artType]);
+  // 캔버스 드로잉 텍스처 (즉시 표시 — 이미지 로딩 전 폴백)
+  const canvasTex = useMemo(() => createArtTexture(artType), [artType]);
+  const [texture, setTexture] = useState<THREE.Texture>(canvasTex);
+
+  useEffect(() => {
+    if (imageUrl) {
+      // 명시적 경로가 있으면 바로 로딩
+      new THREE.TextureLoader().load(
+        imageUrl,
+        (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setTexture(tex); },
+        undefined,
+        () => setTexture(canvasTex),
+      );
+      return;
+    }
+    // 확장자 순서대로 시도: jpg → png → webp
+    const exts = ["jpg", "jpeg", "png", "webp"];
+    let i = 0;
+    const tryNext = () => {
+      if (i >= exts.length) { setTexture(canvasTex); return; }
+      new THREE.TextureLoader().load(
+        `/artworks/${artType}.${exts[i++]}`,
+        (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setTexture(tex); },
+        undefined,
+        tryNext,
+      );
+    };
+    tryNext();
+  }, [artType, imageUrl, canvasTex]);
 
   return (
     <group position={position} rotation={rotation}>
@@ -145,6 +175,7 @@ export default function GalleryArtworks() {
           key={artwork.id}
           artworkId={artwork.id}
           artType={artwork.artType}
+          imageUrl={artwork.imageUrl}
           position={[-5.93, 2.1, leftZs[i]]}
           rotation={[0, Math.PI / 2, 0]}
         />
@@ -156,6 +187,7 @@ export default function GalleryArtworks() {
           key={artwork.id}
           artworkId={artwork.id}
           artType={artwork.artType}
+          imageUrl={artwork.imageUrl}
           position={[5.93, 2.1, rightZs[i]]}
           rotation={[0, -Math.PI / 2, 0]}
         />

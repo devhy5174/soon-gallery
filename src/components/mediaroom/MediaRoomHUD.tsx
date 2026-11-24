@@ -56,8 +56,8 @@ export default function MediaRoomHUD({
         </div>
       )}
 
-      {/* 슬라이드 컨트롤 — 하단 */}
-      <div className="mr-controls">
+      {/* 슬라이드 컨트롤 — 앉았을 때만 표시 */}
+      {isSeated && <div className="mr-controls">
         {/* 이전 */}
         <button className="mr-controls__btn" onClick={onPrev} aria-label="이전 작품">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -91,19 +91,21 @@ export default function MediaRoomHUD({
             <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-      </div>
+      </div>}
 
-      {/* 진행 도트 */}
-      <div className="mr-dots" role="tablist" aria-label="작품 목록">
-        {Array.from({ length: total }).map((_, i) => (
-          <div
-            key={i}
-            className={`mr-dots__dot ${i === currentIndex ? "mr-dots__dot--active" : ""}`}
-            role="tab"
-            aria-selected={i === currentIndex}
-          />
-        ))}
-      </div>
+      {/* 진행 도트 — 앉았을 때만 표시 */}
+      {isSeated && (
+        <div className="mr-dots" role="tablist" aria-label="작품 목록">
+          {Array.from({ length: total }).map((_, i) => (
+            <div
+              key={i}
+              className={`mr-dots__dot ${i === currentIndex ? "mr-dots__dot--active" : ""}`}
+              role="tab"
+              aria-selected={i === currentIndex}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 }

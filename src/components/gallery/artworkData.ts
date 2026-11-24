@@ -13,6 +13,12 @@ export interface ArtworkData {
   titleEn: string;
   description: string;
   artType: ArtType;
+  /**
+   * 이미지 파일 경로 (선택)
+   * - 설정하면 해당 파일을 우선 사용
+   * - 미설정 시 /artworks/{artType}.jpg 자동 탐색 → 없으면 먹화 드로잉 폴백
+   */
+  imageUrl?: string;
 }
 
 export const ARTWORK_LIST: ArtworkData[] = [

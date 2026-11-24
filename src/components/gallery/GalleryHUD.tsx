@@ -43,11 +43,9 @@ export default function GalleryHUD({
 
             {/* 하단 모바일 조작 가이드 */}
             <div className="gallery-controls-guide gallery-controls-guide--mobile">
-              <span>왼쪽 하단 조이스틱 이동</span>
-              <span className="gallery-controls-guide__sep">|</span>
-              <span>드래그 시점 전환</span>
-              <span className="gallery-controls-guide__sep">|</span>
-              <span>그림 탭 감상</span>
+              <span>조이스틱 이동</span>
+              <span>드래그 시점</span>
+              <span>그림 터치 감상</span>
             </div>
           </>
         )}

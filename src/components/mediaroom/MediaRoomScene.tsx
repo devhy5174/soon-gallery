@@ -41,12 +41,37 @@ function ArtworkDisplay({
   const matRef   = useRef<THREE.MeshBasicMaterial>(null);
   const canvasRef  = useRef<HTMLCanvasElement | null>(null);
   const textureRef = useRef<THREE.CanvasTexture | null>(null);
+  /** artType → 로딩 완료된 HTMLImageElement 캐시 */
+  const imgCache = useRef<Map<string, HTMLImageElement>>(new Map());
 
   const opacity        = useRef(1);
   const phase          = useRef<"show" | "fade-out" | "fade-in">("show");
   const showTimer      = useRef(0);
   const targetIndex    = useRef(currentIndex);
   const displayedIndex = useRef(currentIndex);
+
+  // 전체 작품 이미지 프리로딩 (jpg → png → webp 순서 시도)
+  useEffect(() => {
+    ARTWORK_LIST.forEach((artwork) => {
+      if (artwork.imageUrl) {
+        const img = new Image();
+        img.onload = () => imgCache.current.set(artwork.artType, img);
+        img.onerror = () => {};
+        img.src = artwork.imageUrl;
+        return;
+      }
+      const exts = ["jpg", "jpeg", "png", "webp"];
+      let i = 0;
+      const tryNext = () => {
+        if (i >= exts.length) return;
+        const img = new Image();
+        img.onload = () => imgCache.current.set(artwork.artType, img);
+        img.onerror = tryNext;
+        img.src = `/artworks/${artwork.artType}.${exts[i++]}`;
+      };
+      tryNext();
+    });
+  }, []);
 
   // 초기 텍스처 생성
   useEffect(() => {
@@ -76,7 +101,18 @@ function ArtworkDisplay({
   const updateTexture = (idx: number) => {
     if (!canvasRef.current || !textureRef.current) return;
     const ctx = canvasRef.current.getContext("2d")!;
-    drawInkArt(ctx, 800, 1000, ARTWORK_LIST[idx].artType);
+    const artwork = ARTWORK_LIST[idx];
+    const img = imgCache.current.get(artwork.artType);
+    if (img) {
+      // 이미지 파일 있으면 비율 유지하며 canvas에 그림
+      ctx.clearRect(0, 0, 800, 1000);
+      const scale = Math.min(800 / img.naturalWidth, 1000 / img.naturalHeight);
+      const dw = img.naturalWidth * scale;
+      const dh = img.naturalHeight * scale;
+      ctx.drawImage(img, (800 - dw) / 2, (1000 - dh) / 2, dw, dh);
+    } else {
+      drawInkArt(ctx, 800, 1000, artwork.artType);
+    }
     textureRef.current.needsUpdate = true;
     displayedIndex.current = idx;
   };
@@ -198,18 +234,25 @@ function Bench({
     <group position={position}>
       {/* 앉기 전에만 보이는 안내 문구 */}
       {!isSeated && (
-        <Html center position={[0, 0.95, 0]} style={{ pointerEvents: "none" }}>
+        <Html
+          center
+          position={[0, 0.95, 0]}
+          occlude={false}
+          zIndexRange={[100, 0]}
+          style={{ pointerEvents: "none" }}
+        >
           <div style={{
-            color: "rgba(180,160,140,0.75)",
+            color: "rgba(200,180,155,0.9)",
             fontSize: "11px",
             letterSpacing: "1.2px",
             whiteSpace: "nowrap",
             textAlign: "center",
             lineHeight: "1.6",
             userSelect: "none",
+            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
           }}>
             클릭하여 앉기<br />
-            <span style={{ fontSize: "10px", opacity: 0.7 }}>작품 감상</span>
+            <span style={{ fontSize: "10px", opacity: 0.75 }}>작품 감상</span>
           </div>
         </Html>
       )}
@@ -355,7 +398,7 @@ export default function MediaRoomScene({
         target={CAMERA_TARGET}
         enablePan={false}
         enableZoom={false}
-        enableRotate={seatedAt === null}
+        enableRotate={false}
         minAzimuthAngle={-Math.PI / 3}
         maxAzimuthAngle={Math.PI / 3}
         minPolarAngle={Math.PI / 3}

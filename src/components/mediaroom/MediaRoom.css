@@ -42,6 +42,23 @@
 }
 
 /* ========================================
+   앉기 안내 문구
+======================================== */
+
+.mr-sit-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  color: rgba(255, 252, 247, 0.55);
+  font-size: 13px;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ========================================
    일어서기 버튼
 ======================================== */
 

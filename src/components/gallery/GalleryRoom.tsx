@@ -6,6 +6,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { ROOM, COLORS } from "./constants";
+import VaseDecor from "./VaseDecor";
 
 const W = ROOM.width;
 const D = ROOM.depth;
@@ -244,8 +245,15 @@ export default function GalleryRoom() {
       {/* ── 벤치 ── */}
       <Bench position={[0, 0, 0]} />
 
-      {/* ── 화분 받침대 ── */}
-      <VasePedestal position={[2.5, 0, 2]} />
+      {/* ── 화병 데코 ── */}
+      {/* 의자 옆 — 짧은 가지 + 매화 */}
+      <VaseDecor position={[1.5, 0, 0.5]} compact plumBlossom />
+      {/* 입구 오른쪽 벽 모서리 */}
+      <VaseDecor position={[5.3, 0, 11.5]} />
+      {/* 입구 왼쪽 벽 모서리 */}
+      <VaseDecor position={[-5.3, 0, 11.5]} />
+      {/* 오른쪽 벽 안쪽 */}
+      <VaseDecor position={[5.6, 0, -8.5]} />
     </group>
   );
 }

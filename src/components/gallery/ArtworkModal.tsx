@@ -16,13 +16,43 @@ interface Props {
 export default function ArtworkModal({ artwork, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // 작품 변경 시 고해상도로 재렌더링
+  // 작품 변경 시 — 이미지 파일 우선, 없으면 먹화 드로잉 폴백
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    drawInkArt(ctx, canvas.width, canvas.height, artwork.artType);
+
+    const drawImage = (img: HTMLImageElement) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const scale = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+      const dw = img.naturalWidth * scale;
+      const dh = img.naturalHeight * scale;
+      ctx.drawImage(img, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+    };
+
+    if (artwork.imageUrl) {
+      const img = new Image();
+      img.onload = () => drawImage(img);
+      img.onerror = () => drawInkArt(ctx, canvas.width, canvas.height, artwork.artType);
+      img.src = artwork.imageUrl;
+      return;
+    }
+
+    // jpg → png → webp 순서로 시도
+    const exts = ["jpg", "jpeg", "png", "webp"];
+    let i = 0;
+    const tryNext = () => {
+      if (i >= exts.length) {
+        drawInkArt(ctx, canvas.width, canvas.height, artwork.artType);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => drawImage(img);
+      img.onerror = tryNext;
+      img.src = `/artworks/${artwork.artType}.${exts[i++]}`;
+    };
+    tryNext();
   }, [artwork]);
 
   // ESC 키로 모달 닫기

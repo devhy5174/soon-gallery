@@ -408,11 +408,16 @@
 ======================================== */
 
 .gallery-controls-guide--mobile {
+  /* 조이스틱(왼쪽 하단) 겹침 방지 — 오른쪽 하단으로 이동 */
+  left: auto;
+  right: 16px;
+  transform: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 8px 12px;
   font-size: 11px;
-  gap: 6px;
-  padding: 7px 14px;
-  /* 조이스틱 위에 겹치지 않도록 왼쪽 여백 확보 */
-  margin-left: 160px;
+  text-align: right;
 }
 
 /* ========================================
