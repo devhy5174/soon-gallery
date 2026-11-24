@@ -467,3 +467,100 @@
     max-width: 300px;
   }
 }
+
+/* ========================================
+   모바일 가로 모드 (landscape)
+   세로 높이가 짧아 바텀시트 대신 PC팝업 축소 버전으로 표시
+======================================== */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 모달: 중앙 정렬 (바텀시트 해제) */
+  .artwork-modal {
+    align-items: center;
+    padding: 12px;
+  }
+
+  /* 카드: 가로 2단 레이아웃 (PC 팝업 축소) */
+  .artwork-modal__card {
+    flex-direction: row;
+    align-items: flex-start;
+    width: auto;
+    max-width: 580px;
+    height: auto;
+    max-height: 88dvh;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    gap: 20px;
+  }
+
+  @keyframes modal-card-in {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* 그림 영역: 세로로 좁으니 캔버스 작게 */
+  .artwork-modal__frame {
+    flex-shrink: 0;
+    padding: 7px;
+    background: var(--surface-soft);
+    border-bottom: none;
+    align-self: flex-start;
+  }
+
+  .artwork-modal__frame-inner {
+    padding: 6px;
+  }
+
+  .artwork-modal__canvas {
+    width: 110px;
+    height: 138px;
+  }
+
+  /* 텍스트 영역: 넘치면 스크롤 */
+  .artwork-modal__info {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0;
+    gap: 8px;
+  }
+
+  /* 드래그 핸들 숨김 (가로 모드에선 불필요) */
+  .artwork-modal__drag-handle {
+    display: none;
+  }
+
+  .artwork-modal__seal {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .artwork-modal__title {
+    font-size: 18px;
+  }
+
+  .artwork-modal__title-en {
+    font-size: 11px;
+  }
+
+  .artwork-modal__desc {
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .artwork-modal__hint {
+    font-size: 10px;
+    padding-top: 8px;
+  }
+
+  /* 닫기 버튼 위치 */
+  .artwork-modal__close {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+}
