@@ -109,28 +109,6 @@ function Bench({ position }: { position: [number, number, number] }) {
   );
 }
 
-/** 화분 받침대 (백자 항아리 분위기) */
-function VasePedestal({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      {/* 받침대 */}
-      <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.35, 0.8, 0.35]} />
-        <meshStandardMaterial color="#e8e0d4" roughness={0.7} />
-      </mesh>
-      {/* 항아리 — 구 + 원기둥으로 표현 */}
-      <mesh position={[0, 1.08, 0]} castShadow>
-        <sphereGeometry args={[0.18, 12, 12]} />
-        <meshStandardMaterial color="#f0ece4" roughness={0.6} />
-      </mesh>
-      {/* 항아리 목 */}
-      <mesh position={[0, 1.3, 0]} castShadow>
-        <cylinderGeometry args={[0.06, 0.1, 0.18, 10]} />
-        <meshStandardMaterial color="#f0ece4" roughness={0.6} />
-      </mesh>
-    </group>
-  );
-}
 
 export default function GalleryRoom() {
   // 천장 빔 Z 좌표 — 균등 간격
