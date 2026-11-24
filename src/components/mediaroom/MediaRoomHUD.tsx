@@ -48,6 +48,11 @@ export default function MediaRoomHUD({
         </button>
       )}
 
+      {/* 앉기 전 안내 */}
+      {!isSeated && (
+        <p className="mr-sit-hint">의자를 클릭하여 감상하세요</p>
+      )}
+
       {/* 작품 정보 — 앉았을 때만 표시 */}
       {isSeated && (
         <div className="mr-info">

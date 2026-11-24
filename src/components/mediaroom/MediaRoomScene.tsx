@@ -229,18 +229,18 @@ function Bench({
 }) {
   const [hovered, setHovered] = useState(false);
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
+  // Html 컴포넌트 첫 마운트 시 React root 초기화 충돌 방지 — 한 프레임 뒤에 표시
+  const [hintReady, setHintReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setHintReady(true), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <group position={position}>
-      {/* 앉기 전에만 보이는 안내 문구 */}
-      {!isSeated && (
-        <Html
-          center
-          position={[0, 0.95, 0]}
-          occlude={false}
-          zIndexRange={[100, 0]}
-          style={{ pointerEvents: "none" }}
-        >
+      {/* 앉기 전에만 보이는 안내 문구 — hintReady로 초기 충돌 방지 */}
+      {hintReady && !isSeated && (
+        <Html center position={[0, 0.95, 0]} style={{ pointerEvents: "none" }}>
           <div style={{
             color: "rgba(200,180,155,0.9)",
             fontSize: "11px",
@@ -258,7 +258,7 @@ function Bench({
       )}
 
       {/* 호버 시 하이라이트 힌트 */}
-      {hovered && (
+      {hintReady && hovered && !isSeated && (
         <Html center position={[0, 1.15, 0]} style={{ pointerEvents: "none" }}>
           <div style={{
             background: "rgba(41,39,36,0.78)",
