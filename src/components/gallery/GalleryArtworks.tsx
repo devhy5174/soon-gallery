@@ -4,7 +4,7 @@
  * 각 작품 평면에 userData.artworkId를 설정하여 레이캐스트 식별을 지원한다
  */
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { createArtTexture, drawInkArt } from "./artDrawings";
 import { ARTWORK_LIST } from "./artworkData";
@@ -121,13 +121,28 @@ export function BackWallSign() {
     return new THREE.CanvasTexture(canvas);
   }, []);
 
-  const paintingTexture = useMemo(() => {
+  const [paintingTexture, setPaintingTexture] = useState<THREE.Texture | null>(null);
+  const fallbackRef = useRef<THREE.Texture | null>(null);
+
+  useEffect(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 640;
-    canvas.height = 400;
+    canvas.width = 640; canvas.height = 400;
     const ctx = canvas.getContext("2d")!;
     drawInkArt(ctx, 640, 400, "mountain");
-    return new THREE.CanvasTexture(canvas);
+    const fallback = new THREE.CanvasTexture(canvas);
+    fallbackRef.current = fallback;
+
+    const exts = ["jpg", "jpeg", "png", "webp"];
+    let i = 0;
+    const tryNext = () => {
+      if (i >= exts.length) { setPaintingTexture(fallback); return; }
+      new THREE.TextureLoader().load(
+        `${import.meta.env.BASE_URL}artworks/mountain.${exts[i++]}`,
+        (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setPaintingTexture(tex); },
+        undefined, tryNext,
+      );
+    };
+    tryNext();
   }, []);
 
   return (
@@ -138,34 +153,36 @@ export function BackWallSign() {
         <meshBasicMaterial map={signTexture} transparent />
       </mesh>
 
-      {/* 대형 산수화 액자 */}
-      <group position={[0, 1.85, -12.9]}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[3.28, 2.08, 0.07]} />
-          <meshStandardMaterial color={COLORS.frameWood} roughness={0.55} />
-        </mesh>
-        <mesh position={[0, 0, 0.038]}>
-          <planeGeometry args={[3.2, 2.0]} />
-          <meshStandardMaterial map={paintingTexture} roughness={0.9} />
-        </mesh>
-      </group>
+      {/* 대형 산수화 액자 — 세로(portrait) */}
+      {paintingTexture && (
+        <group position={[0, 1.5, -12.9]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[2.08, 2.68, 0.07]} />
+            <meshStandardMaterial color={COLORS.frameWood} roughness={0.55} />
+          </mesh>
+          <mesh position={[0, 0, 0.038]}>
+            <planeGeometry args={[2.0, 2.6]} />
+            <meshStandardMaterial map={paintingTexture} roughness={0.9} />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 }
 
 /** 양쪽 벽 작품 배치 */
 export default function GalleryArtworks() {
-  const leftArtworks = ARTWORK_LIST.filter((a) =>
-    a.id.startsWith("left")
-  );
-  const rightArtworks = ARTWORK_LIST.filter((a) =>
-    a.id.startsWith("right")
-  );
+  const leftArtworks  = ARTWORK_LIST.filter((a) => a.id.startsWith("left"));
+  const rightArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("right"));
+  const backArtworks  = ARTWORK_LIST.filter((a) => a.id.startsWith("back"));
 
-  // 좌벽 Z 좌표 (입구→뒷벽 순)
-  const leftZs = [7, 1, -5];
-  // 우벽 Z 좌표
-  const rightZs = [7, 1, -5];
+  // 뒷벽 사이드 X 좌표 — 중앙 대형(3.28) 기준 좌우 2점씩
+  const backXs: Record<string, number> = {
+    "back-left-2":  -4.5,
+    "back-left-1":  -2.7,
+    "back-right-1":  2.7,
+    "back-right-2":  4.5,
+  };
 
   return (
     <group>
@@ -176,7 +193,7 @@ export default function GalleryArtworks() {
           artworkId={artwork.id}
           artType={artwork.artType}
           imageUrl={artwork.imageUrl}
-          position={[-5.93, 2.1, leftZs[i]]}
+          position={[-5.93, 2.1, [7, 1, -5][i]]}
           rotation={[0, Math.PI / 2, 0]}
         />
       ))}
@@ -188,13 +205,25 @@ export default function GalleryArtworks() {
           artworkId={artwork.id}
           artType={artwork.artType}
           imageUrl={artwork.imageUrl}
-          position={[5.93, 2.1, rightZs[i]]}
+          position={[5.93, 2.1, [7, 1, -5][i]]}
           rotation={[0, -Math.PI / 2, 0]}
         />
       ))}
 
       {/* 뒷벽 사인 + 대형 산수화 */}
       <BackWallSign />
+
+      {/* 뒷벽 사이드 액자 4점 */}
+      {backArtworks.map((artwork) => (
+        <ArtFrame
+          key={artwork.id}
+          artworkId={artwork.id}
+          artType={artwork.artType}
+          imageUrl={artwork.imageUrl}
+          position={[backXs[artwork.id], 1.85, -12.9]}
+          rotation={[0, 0, 0]}
+        />
+      ))}
     </group>
   );
 }

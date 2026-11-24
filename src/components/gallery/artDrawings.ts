@@ -12,7 +12,11 @@ export type ArtType =
   | "mountain"
   | "orchid"
   | "bird"
-  | "chrysanthemum";
+  | "chrysanthemum"
+  | "lotus"
+  | "pine"
+  | "grape"
+  | "peony";
 
 /** 붉은 낙관 (도장) */
 function drawSeal(ctx: CanvasRenderingContext2D) {
@@ -266,6 +270,163 @@ function drawChrysanthemum(ctx: CanvasRenderingContext2D) {
   ctx.fill();
 }
 
+/** 연화도 */
+function drawLotus(ctx: CanvasRenderingContext2D) {
+  // 줄기
+  ctx.strokeStyle = "rgba(55, 90, 55, 0.65)";
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(200, 500);
+  ctx.bezierCurveTo(195, 400, 185, 360, 200, 300);
+  ctx.stroke();
+  // 연잎
+  ctx.fillStyle = "rgba(70, 110, 65, 0.3)";
+  ctx.beginPath();
+  ctx.ellipse(145, 390, 55, 25, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // 꽃잎 5장
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+    const cx = 200 + Math.cos(angle) * 48;
+    const cy = 220 + Math.sin(angle) * 48;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 26, 44, angle + Math.PI / 2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(210, 170, 190, 0.45)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(50, 40, 30, 0.6)";
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+  }
+  // 꽃심
+  ctx.beginPath();
+  ctx.arc(200, 220, 18, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(230, 195, 80, 0.7)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.5)";
+  ctx.stroke();
+}
+
+/** 송학도 */
+function drawPine(ctx: CanvasRenderingContext2D) {
+  // 소나무 줄기
+  ctx.strokeStyle = "rgba(60, 45, 30, 0.75)";
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(200, 500);
+  ctx.bezierCurveTo(195, 400, 180, 320, 185, 230);
+  ctx.stroke();
+  // 가지들
+  const branches: [number, number, number, number, number, number][] = [
+    [185, 300, 100, 260, 60, 240],
+    [185, 260, 290, 210, 330, 195],
+    [185, 230, 120, 180, 90, 155],
+    [185, 230, 270, 175, 300, 155],
+  ];
+  ctx.lineWidth = 3;
+  branches.forEach(([x1, y1, x2, y2, x3, y3]) => {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.quadraticCurveTo(x2, y2, x3, y3);
+    ctx.stroke();
+  });
+  // 솔잎 뭉치
+  const needleClusters = [[60, 230], [330, 185], [90, 148], [300, 148], [185, 110]];
+  needleClusters.forEach(([cx, cy]) => {
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI * 2) / 8;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a) * 22, cy + Math.sin(a) * 22);
+      ctx.strokeStyle = "rgba(50, 80, 45, 0.6)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  });
+}
+
+/** 포도도 */
+function drawGrape(ctx: CanvasRenderingContext2D) {
+  // 덩굴 줄기
+  ctx.strokeStyle = "rgba(60, 45, 30, 0.65)";
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(200, 80);
+  ctx.bezierCurveTo(220, 130, 210, 170, 200, 200);
+  ctx.stroke();
+  // 잎
+  ctx.fillStyle = "rgba(65, 105, 55, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(145, 120, 50, 35, -0.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.5)";
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(265, 100, 45, 32, 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // 포도송이
+  const rows = [[1], [2], [3], [4], [3], [2], [1]];
+  let startY = 210;
+  rows.forEach((row) => {
+    const count = row[0];
+    const startX = 200 - (count - 1) * 24;
+    for (let i = 0; i < count; i++) {
+      ctx.beginPath();
+      ctx.arc(startX + i * 24 * 2, startY, 18, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(100, 70, 140, 0.55)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(50, 40, 30, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    startY += 36;
+  });
+}
+
+/** 모란도 */
+function drawPeony(ctx: CanvasRenderingContext2D) {
+  // 줄기·잎
+  ctx.strokeStyle = "rgba(55, 85, 50, 0.6)";
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(200, 500);
+  ctx.bezierCurveTo(200, 420, 195, 370, 200, 320);
+  ctx.stroke();
+  [[140, 400, 0.4], [260, 380, -0.4]].forEach(([lx, ly, angle]) => {
+    ctx.fillStyle = "rgba(65, 105, 55, 0.3)";
+    ctx.beginPath();
+    ctx.ellipse(lx as number, ly as number, 42, 24, angle as number, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+  // 꽃잎 (겹겹이 3층)
+  [[55, 1.0], [38, 0.55], [22, 0.35]].forEach(([r, alpha], layer) => {
+    const count = 7 - layer;
+    for (let i = 0; i < count; i++) {
+      const angle = (i * Math.PI * 2) / count + layer * 0.3;
+      const cx = 200 + Math.cos(angle) * (r as number) * 0.6;
+      const cy = 230 + Math.sin(angle) * (r as number) * 0.6;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r as number, (r as number) * 0.65, angle, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(210, 120, 130, ${alpha})`;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(50, 40, 30, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  });
+  // 꽃심
+  ctx.beginPath();
+  ctx.arc(200, 230, 10, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(230, 190, 60, 0.85)";
+  ctx.fill();
+}
+
 /**
  * 먹화를 주어진 크기의 canvas에 그린다
  * 모든 그리기는 400×500 기준 좌표를 사용하고 ctx.scale로 대상 크기에 맞춘다
@@ -289,6 +450,10 @@ export function drawInkArt(
     case "orchid":        drawOrchid(ctx);         break;
     case "bird":          drawBird(ctx);           break;
     case "chrysanthemum": drawChrysanthemum(ctx);  break;
+    case "lotus":         drawLotus(ctx);           break;
+    case "pine":          drawPine(ctx);            break;
+    case "grape":         drawGrape(ctx);           break;
+    case "peony":         drawPeony(ctx);           break;
   }
   drawSeal(ctx);
 
