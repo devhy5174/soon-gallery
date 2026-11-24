@@ -1,0 +1,306 @@
+/**
+ * artDrawings
+ * 먹화 드로잉 함수 모음 — 3D 텍스처와 모달 이미지에서 공통으로 사용
+ * 모든 좌표는 400×500 기준으로 작성하고 drawInkArt에서 스케일 적용
+ */
+
+import * as THREE from "three";
+
+export type ArtType =
+  | "plum"
+  | "bamboo"
+  | "mountain"
+  | "orchid"
+  | "bird"
+  | "chrysanthemum";
+
+/** 붉은 낙관 (도장) */
+function drawSeal(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = "rgba(166, 75, 60, 0.85)";
+  ctx.fillRect(340, 440, 32, 32);
+  ctx.fillStyle = "#f8f4ed";
+  ctx.font = "bold 16px serif";
+  ctx.textAlign = "center";
+  ctx.fillText("순", 356, 462);
+}
+
+/** 홍매도 */
+function drawPlum(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.75)";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(80, 500);
+  ctx.bezierCurveTo(100, 380, 160, 340, 200, 220);
+  ctx.bezierCurveTo(230, 140, 260, 100, 300, 60);
+  ctx.stroke();
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(200, 220);
+  ctx.bezierCurveTo(240, 200, 280, 220, 320, 200);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(170, 310);
+  ctx.bezierCurveTo(130, 290, 100, 300, 70, 280);
+  ctx.stroke();
+  (
+    [
+      [290, 70],
+      [310, 110],
+      [330, 55],
+      [260, 85],
+      [340, 85],
+    ] as [number, number][]
+  ).forEach(([fx, fy]) => {
+    ctx.fillStyle = "rgba(195, 100, 110, 0.65)";
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * Math.PI * 2) / 5;
+      ctx.beginPath();
+      ctx.ellipse(
+        fx + Math.cos(angle) * 10,
+        fy + Math.sin(angle) * 10,
+        7, 5, angle, 0, Math.PI * 2
+      );
+      ctx.fill();
+    }
+    ctx.fillStyle = "rgba(230, 190, 60, 0.9)";
+    ctx.beginPath();
+    ctx.arc(fx, fy, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/** 풍죽도 */
+function drawBamboo(ctx: CanvasRenderingContext2D) {
+  const drawStalk = (x: number, lean: number) => {
+    ctx.strokeStyle = "rgba(55, 75, 45, 0.7)";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    let y = 500;
+    for (let seg = 0; seg < 7; seg++) {
+      ctx.beginPath();
+      ctx.moveTo(x + lean * seg, y);
+      ctx.lineTo(x + lean * (seg + 1), y - 60);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + lean * (seg + 1) - 6, y - 60);
+      ctx.lineTo(x + lean * (seg + 1) + 6, y - 60);
+      ctx.stroke();
+      y -= 60;
+    }
+    ctx.lineWidth = 2;
+    (
+      [
+        [x + lean * 3, 320],
+        [x + lean * 5, 200],
+      ] as [number, number][]
+    ).forEach(([lx, ly]) => {
+      (
+        [
+          [-1, -1],
+          [1, -1],
+          [0, -1.4],
+        ] as [number, number][]
+      ).forEach(([dx, dy]) => {
+        ctx.beginPath();
+        ctx.moveTo(lx, ly);
+        ctx.bezierCurveTo(
+          lx + dx * 25, ly + dy * 20,
+          lx + dx * 50, ly + dy * 40,
+          lx + dx * 60, ly + dy * 10
+        );
+        ctx.stroke();
+      });
+    });
+  };
+  drawStalk(120, 2);
+  drawStalk(220, -1.5);
+  drawStalk(300, 1);
+}
+
+/** 산수도 */
+function drawMountain(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = "rgba(80, 70, 60, 0.08)";
+  ctx.beginPath();
+  ctx.moveTo(0, 420);
+  ctx.quadraticCurveTo(100, 150, 200, 260);
+  ctx.quadraticCurveTo(300, 100, 400, 350);
+  ctx.lineTo(400, 420);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(55, 45, 35, 0.18)";
+  ctx.beginPath();
+  ctx.moveTo(0, 500);
+  ctx.quadraticCurveTo(60, 300, 150, 360);
+  ctx.quadraticCurveTo(200, 220, 260, 310);
+  ctx.quadraticCurveTo(320, 240, 400, 420);
+  ctx.lineTo(400, 500);
+  ctx.fill();
+
+  const mist = ctx.createLinearGradient(0, 310, 0, 390);
+  mist.addColorStop(0, "rgba(248, 244, 237, 0)");
+  mist.addColorStop(0.5, "rgba(248, 244, 237, 0.65)");
+  mist.addColorStop(1, "rgba(248, 244, 237, 0)");
+  ctx.fillStyle = mist;
+  ctx.fillRect(0, 310, 400, 80);
+
+  ctx.fillStyle = "rgba(40, 35, 25, 0.5)";
+  ctx.beginPath();
+  ctx.moveTo(300, 420);
+  ctx.lineTo(310, 300);
+  ctx.lineTo(320, 420);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(310, 295, 25, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/** 묵란도 */
+function drawOrchid(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = "rgba(50, 60, 40, 0.65)";
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  (
+    [
+      [160, 480, 80, 200],
+      [200, 480, 300, 180],
+      [220, 480, 350, 280],
+      [140, 460, 50, 300],
+    ] as [number, number, number, number][]
+  ).forEach(([sx, sy, ex, ey]) => {
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo((sx + ex) / 2 + 30, (sy + ey) / 2, ex, ey);
+    ctx.stroke();
+  });
+  (
+    [
+      [250, 240],
+      [290, 190],
+      [230, 170],
+    ] as [number, number][]
+  ).forEach(([fx, fy]) => {
+    ctx.fillStyle = "rgba(140, 100, 160, 0.5)";
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+      ctx.beginPath();
+      ctx.ellipse(
+        fx + Math.cos(angle) * 14,
+        fy + Math.sin(angle) * 14,
+        10, 7, angle, 0, Math.PI * 2
+      );
+      ctx.fill();
+    }
+    ctx.fillStyle = "rgba(230, 190, 60, 0.9)";
+    ctx.beginPath();
+    ctx.arc(fx, fy, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/** 조수도 */
+function drawBird(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.6)";
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.moveTo(0, 300);
+  ctx.bezierCurveTo(100, 280, 200, 260, 320, 230);
+  ctx.bezierCurveTo(360, 220, 400, 200, 400, 180);
+  ctx.stroke();
+  (
+    [
+      [250, 215],
+      [310, 200],
+    ] as [number, number][]
+  ).forEach(([bx, by]) => {
+    ctx.fillStyle = "rgba(60, 50, 40, 0.75)";
+    ctx.beginPath();
+    ctx.ellipse(bx, by, 18, 12, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(bx + 16, by - 4, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(bx - 14, by);
+    ctx.lineTo(bx - 28, by - 8);
+    ctx.lineTo(bx - 26, by + 2);
+    ctx.fill();
+  });
+}
+
+/** 황국도 */
+function drawChrysanthemum(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = "rgba(50, 60, 35, 0.6)";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(200, 500);
+  ctx.bezierCurveTo(195, 400, 185, 340, 200, 250);
+  ctx.stroke();
+  (
+    [
+      [175, 380],
+      [215, 340],
+    ] as [number, number][]
+  ).forEach(([lx, ly]) => {
+    ctx.fillStyle = "rgba(60, 85, 45, 0.45)";
+    ctx.beginPath();
+    ctx.ellipse(lx, ly, 25, 15, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  const cx = 200,
+    cy = 230;
+  for (let i = 0; i < 24; i++) {
+    const angle = (i * Math.PI * 2) / 24;
+    ctx.fillStyle = "rgba(210, 180, 80, 0.65)";
+    ctx.beginPath();
+    ctx.ellipse(
+      cx + Math.cos(angle) * 28,
+      cy + Math.sin(angle) * 28,
+      10, 6, angle, 0, Math.PI * 2
+    );
+    ctx.fill();
+  }
+  ctx.fillStyle = "rgba(190, 140, 40, 0.9)";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/**
+ * 먹화를 주어진 크기의 canvas에 그린다
+ * 모든 그리기는 400×500 기준 좌표를 사용하고 ctx.scale로 대상 크기에 맞춘다
+ */
+export function drawInkArt(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  type: ArtType
+) {
+  ctx.fillStyle = "#f8f4ed";
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.scale(w / 400, h / 500);
+
+  switch (type) {
+    case "plum":          drawPlum(ctx);          break;
+    case "bamboo":        drawBamboo(ctx);         break;
+    case "mountain":      drawMountain(ctx);       break;
+    case "orchid":        drawOrchid(ctx);         break;
+    case "bird":          drawBird(ctx);           break;
+    case "chrysanthemum": drawChrysanthemum(ctx);  break;
+  }
+  drawSeal(ctx);
+
+  ctx.restore();
+}
+
+/** Three.js 텍스처 생성 (3D 액자용, 400×500) */
+export function createArtTexture(type: ArtType): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 400;
+  canvas.height = 500;
+  const ctx = canvas.getContext("2d")!;
+  drawInkArt(ctx, 400, 500, type);
+  return new THREE.CanvasTexture(canvas);
+}

@@ -3,7 +3,6 @@
    캔버스 컨테이너 + HUD 오버레이 스타일
 ======================================== */
 
-/* Three.js 캔버스 풀스크린 래퍼 */
 .gallery-wrapper {
   position: relative;
   width: 100%;
@@ -24,7 +23,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 반투명 오버레이 — 3D 화면을 살짝 보이게 */
   background: rgba(247, 243, 235, 0.72);
   backdrop-filter: blur(4px);
   z-index: 20;
@@ -41,10 +39,9 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   text-align: center;
-  max-width: 340px;
+  max-width: 360px;
 }
 
-/* 마우스 아이콘 */
 .gallery-overlay__icon {
   color: var(--primary);
   margin-bottom: 4px;
@@ -63,7 +60,12 @@
   font-size: 13px;
   color: var(--text-muted);
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.8;
+}
+
+.gallery-overlay__hint strong {
+  color: var(--text-h);
+  font-weight: 600;
 }
 
 .gallery-overlay__exit {
@@ -73,7 +75,7 @@
 }
 
 /* ========================================
-   나가기 버튼 (포인터 락 해제 상태)
+   나가기 버튼
 ======================================== */
 
 .gallery-exit-btn {
@@ -102,7 +104,75 @@
 }
 
 /* ========================================
-   조작 가이드 (하단 고정)
+   크로스헤어
+======================================== */
+
+.gallery-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 252, 247, 0.7);
+  border: 1px solid rgba(41, 39, 36, 0.4);
+  pointer-events: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+/* 작품 조준 시 크로스헤어 강조 */
+.gallery-crosshair--active {
+  transform: translate(-50%, -50%) scale(1.8);
+  background: rgba(166, 75, 60, 0.75);
+  border-color: rgba(166, 75, 60, 0.6);
+}
+
+/* ========================================
+   작품 감상 힌트
+======================================== */
+
+.gallery-interact-hint {
+  position: absolute;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(41, 39, 36, 0.6);
+  border-radius: 20px;
+  color: rgba(255, 252, 247, 0.9);
+  font-size: 13px;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+  animation: hint-fade-in 0.2s ease;
+}
+
+.gallery-interact-hint__key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 252, 247, 0.2);
+  border: 1px solid rgba(255, 252, 247, 0.35);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-style: normal;
+}
+
+@keyframes hint-fade-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ========================================
+   하단 조작 가이드
 ======================================== */
 
 .gallery-controls-guide {
@@ -115,15 +185,285 @@
   align-items: center;
   gap: 10px;
   padding: 8px 20px;
-  background: rgba(41, 39, 36, 0.55);
+  background: rgba(41, 39, 36, 0.5);
   border-radius: 20px;
-  color: rgba(255, 252, 247, 0.85);
+  color: rgba(255, 252, 247, 0.75);
   font-size: 12px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   backdrop-filter: blur(6px);
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .gallery-controls-guide__sep {
-  opacity: 0.4;
+  opacity: 0.35;
+}
+
+/* ========================================
+   작품 감상 모달
+======================================== */
+
+.artwork-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 27, 24, 0.82);
+  backdrop-filter: blur(8px);
+  animation: modal-bg-in 0.25s ease;
+  padding: 20px;
+}
+
+@keyframes modal-bg-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.artwork-modal__card {
+  position: relative;
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 48px 48px 48px 48px;
+  max-width: 860px;
+  width: 100%;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
+  animation: modal-card-in 0.28s ease;
+}
+
+@keyframes modal-card-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 닫기 버튼 */
+.artwork-modal__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.artwork-modal__close:hover {
+  background: var(--surface-soft);
+  color: var(--text-h);
+}
+
+/* 액자 영역 */
+.artwork-modal__frame {
+  flex-shrink: 0;
+  padding: 10px;
+  background: var(--surface-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow);
+}
+
+.artwork-modal__frame-inner {
+  /* 원목 액자 느낌 */
+  padding: 10px;
+  background: #8b6845;
+  border-radius: 4px;
+}
+
+.artwork-modal__canvas {
+  display: block;
+  width: 240px;
+  height: 300px;
+  border-radius: 2px;
+}
+
+/* 드래그 핸들 — 모바일에서만 표시 */
+.artwork-modal__drag-handle {
+  display: none;
+}
+
+/* 작품 정보 */
+.artwork-modal__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+/* 소형 인장 장식 */
+.artwork-modal__seal {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--heading);
+  font-size: 20px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.artwork-modal__title {
+  font-family: var(--heading);
+  font-size: clamp(24px, 3vw, 32px);
+  color: var(--text-h);
+  font-weight: 400;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.artwork-modal__title-en {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.artwork-modal__divider {
+  width: 40px;
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.artwork-modal__desc {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.9;
+  margin: 0;
+}
+
+.artwork-modal__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: auto 0 0;
+  padding-top: 16px;
+}
+
+/* ========================================
+   모바일 조작 가이드 변형
+======================================== */
+
+.gallery-controls-guide--mobile {
+  font-size: 11px;
+  gap: 6px;
+  padding: 7px 14px;
+  /* 조이스틱 위에 겹치지 않도록 왼쪽 여백 확보 */
+  margin-left: 160px;
+}
+
+/* ========================================
+   반응형
+======================================== */
+
+@media (max-width: 640px) {
+  /* 모달: 아래서 올라오는 바텀시트 */
+  .artwork-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* 카드 전체 — 고정 높이, 내부 overflow 차단 */
+  .artwork-modal__card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    width: 100%;
+    height: 90dvh;
+    max-height: 90dvh;
+    overflow: hidden;           /* 카드 자체는 스크롤 안 됨 */
+    border-radius: 20px 20px 0 0;
+  }
+
+  /* 모달 열림 애니메이션 — 아래서 슬라이드 업 */
+  @keyframes modal-card-in {
+    from { opacity: 0; transform: translateY(60px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 닫기 버튼 — 그림 영역 우상단 */
+  .artwork-modal__close {
+    top: 14px;
+    right: 14px;
+  }
+
+  /* 그림 영역 — flex-shrink: 0 으로 항상 고정 */
+  .artwork-modal__frame {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 24px 20px;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .artwork-modal__canvas {
+    width: 160px;
+    height: 200px;
+  }
+
+  /* 텍스트 영역 — flex: 1 + 스크롤 가능 */
+  .artwork-modal__info {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;  /* iOS 부드러운 스크롤 */
+    overscroll-behavior: contain;
+    padding: 0 24px 40px;
+    gap: 10px;
+  }
+
+  /* 드래그 핸들 바 */
+  .artwork-modal__drag-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin: 14px auto 18px;
+    flex-shrink: 0;
+  }
+
+  .artwork-modal__seal {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .artwork-modal__title {
+    font-size: 22px;
+  }
+
+  .artwork-modal__desc {
+    font-size: 14px;
+  }
+
+  .artwork-modal__hint {
+    font-size: 11px;
+  }
+
+  .gallery-controls-guide {
+    font-size: 11px;
+    gap: 7px;
+    padding: 7px 14px;
+  }
+
+  .gallery-overlay__inner {
+    padding: 28px 24px;
+    max-width: 300px;
+  }
 }
