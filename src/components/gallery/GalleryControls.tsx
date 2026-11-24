@@ -84,18 +84,19 @@ export default function GalleryControls({
   }, [onInteract, onEnterMediaRoom]);
 
   useFrame(({ scene, raycaster }) => {
-    // 작품 메시 목록 최초 1회 수집 (userData.artworkId 가 있는 평면만)
-    if (!meshScanDone.current) {
-      const found: THREE.Mesh[] = [];
-      scene.traverse((obj) => {
-        if ((obj as THREE.Mesh).isMesh && obj.userData.artworkId) {
-          found.push(obj as THREE.Mesh);
-        }
-      });
-      if (found.length > 0) {
-        artworkMeshes.current = found;
-        meshScanDone.current = true;
+    // 작품 메시 목록 수집 — 메인 뒷벽 그림은 텍스처 로딩 후 마운트되므로 카운트 변경 시 재스캔
+    const found: THREE.Mesh[] = [];
+    scene.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh && obj.userData.artworkId) {
+        found.push(obj as THREE.Mesh);
       }
+    });
+    if (found.length !== artworkMeshes.current.length) {
+      artworkMeshes.current = found;
+      meshScanDone.current = true;
+    } else if (!meshScanDone.current && found.length > 0) {
+      artworkMeshes.current = found;
+      meshScanDone.current = true;
     }
 
     // 화면 중앙(0,0)에서 레이캐스트

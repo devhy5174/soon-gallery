@@ -71,7 +71,15 @@ export const ARTWORK_LIST: ArtworkData[] = [
     artType: "chrysanthemum",
   },
   {
-    id: "back-left-2",
+    id: "back-main",
+    title: "산수화",
+    titleEn: "Mountain Landscape",
+    description:
+      "운무가 감도는 웅장한 산세와 계곡의 정경을 담은 대형 묵화입니다. 넓은 여백 속에서 자연의 광대함과 고요함을 느낄 수 있는 전시관의 대표 작품입니다.",
+    artType: "mountain",
+  },
+  {
+    id: "back-left-1",
     title: "연화도",
     titleEn: "Lotus Flower",
     description:
@@ -79,23 +87,31 @@ export const ARTWORK_LIST: ArtworkData[] = [
     artType: "lotus",
   },
   {
-    id: "back-left-1",
-    title: "송학도",
-    titleEn: "Pine and Crane",
+    id: "front-1",
+    title: "어락도",
+    titleEn: "Carp in Water",
     description:
-      "세한(歲寒)에도 푸름을 잃지 않는 소나무의 굳은 절개를 묵화로 표현했습니다. 소나무는 장수와 불변의 의지를 상징하는 선비의 나무입니다.",
-    artType: "pine",
+      "물속을 유유히 노니는 잉어를 담았습니다. 잉어는 출세와 등용을 상징하며, 물결 위를 힘차게 뛰어오르는 모습은 역경을 극복하는 기상을 나타냅니다.",
+    artType: "carp",
+  },
+  {
+    id: "front-2",
+    title: "맹호도",
+    titleEn: "Tiger",
+    description:
+      "백수의 왕 호랑이를 힘차게 표현했습니다. 용맹과 위엄의 상징인 호랑이는 나쁜 기운을 물리치고 집안을 지켜주는 수호의 의미를 담고 있습니다.",
+    artType: "tiger",
+  },
+  {
+    id: "front-3",
+    title: "쌍학도",
+    titleEn: "Two Cranes",
+    description:
+      "소나무 가지 위에 깃든 학의 우아한 자태를 표현했습니다. 학은 장수와 고결함을 상징하며, 소나무와 함께 불로장생의 염원을 담은 길상의 작품입니다.",
+    artType: "crane",
   },
   {
     id: "back-right-1",
-    title: "포도도",
-    titleEn: "Grape Vine",
-    description:
-      "풍성하게 열린 포도송이와 덩굴잎을 담았습니다. 넉넉함과 풍요를 상징하며, 자유롭게 뻗어나가는 덩굴의 생명력이 느껴지는 작품입니다.",
-    artType: "grape",
-  },
-  {
-    id: "back-right-2",
     title: "모란도",
     titleEn: "Peony",
     description:

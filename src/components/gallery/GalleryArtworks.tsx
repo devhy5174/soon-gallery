@@ -160,7 +160,7 @@ export function BackWallSign() {
             <boxGeometry args={[2.08, 2.68, 0.07]} />
             <meshStandardMaterial color={COLORS.frameWood} roughness={0.55} />
           </mesh>
-          <mesh position={[0, 0, 0.038]}>
+          <mesh position={[0, 0, 0.038]} userData={{ artworkId: "back-main" }}>
             <planeGeometry args={[2.0, 2.6]} />
             <meshStandardMaterial map={paintingTexture} roughness={0.9} />
           </mesh>
@@ -175,13 +175,12 @@ export default function GalleryArtworks() {
   const leftArtworks  = ARTWORK_LIST.filter((a) => a.id.startsWith("left"));
   const rightArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("right"));
   const backArtworks  = ARTWORK_LIST.filter((a) => a.id.startsWith("back"));
+  const frontArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("front"));
 
   // 뒷벽 사이드 X 좌표 — 중앙 대형(3.28) 기준 좌우 2점씩
   const backXs: Record<string, number> = {
-    "back-left-2":  -4.5,
-    "back-left-1":  -2.7,
-    "back-right-1":  2.7,
-    "back-right-2":  4.5,
+    "back-left-1":  -3.8,
+    "back-right-1":  3.8,
   };
 
   return (
@@ -212,6 +211,18 @@ export default function GalleryArtworks() {
 
       {/* 뒷벽 사인 + 대형 산수화 */}
       <BackWallSign />
+
+      {/* 앞벽 액자 3점 — 균등 배치 */}
+      {frontArtworks.map((artwork, i) => (
+        <ArtFrame
+          key={artwork.id}
+          artworkId={artwork.id}
+          artType={artwork.artType}
+          imageUrl={artwork.imageUrl}
+          position={[-3.5 + i * 3.5, 2.1, 12.9]}
+          rotation={[0, Math.PI, 0]}
+        />
+      ))}
 
       {/* 뒷벽 사이드 액자 4점 */}
       {backArtworks.map((artwork) => (

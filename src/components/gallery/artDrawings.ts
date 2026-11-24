@@ -16,7 +16,10 @@ export type ArtType =
   | "lotus"
   | "pine"
   | "grape"
-  | "peony";
+  | "peony"
+  | "carp"
+  | "tiger"
+  | "crane";
 
 /** 붉은 낙관 (도장) */
 function drawSeal(ctx: CanvasRenderingContext2D) {
@@ -427,6 +430,189 @@ function drawPeony(ctx: CanvasRenderingContext2D) {
   ctx.fill();
 }
 
+/** 어락도 (잉어) */
+function drawCarp(ctx: CanvasRenderingContext2D) {
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.7)";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  // 물결
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(60, 380 + i * 25);
+    ctx.bezierCurveTo(150, 365 + i * 25, 250, 395 + i * 25, 340, 380 + i * 25);
+    ctx.strokeStyle = `rgba(80, 110, 160, ${0.25 - i * 0.05})`;
+    ctx.stroke();
+  }
+  // 몸통
+  ctx.beginPath();
+  ctx.ellipse(190, 270, 90, 50, -0.2, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(190, 150, 100, 0.45)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.65)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // 비늘
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 5; col++) {
+      ctx.beginPath();
+      ctx.arc(130 + col * 30 + (row % 2) * 15, 250 + row * 14, 11, Math.PI, Math.PI * 2);
+      ctx.strokeStyle = "rgba(50, 40, 30, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+  // 꼬리
+  ctx.beginPath();
+  ctx.moveTo(275, 270);
+  ctx.bezierCurveTo(310, 230, 330, 215, 310, 270);
+  ctx.bezierCurveTo(330, 325, 310, 310, 275, 270);
+  ctx.fillStyle = "rgba(190, 150, 100, 0.35)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.6)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // 눈
+  ctx.beginPath();
+  ctx.arc(118, 262, 5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(30, 20, 10, 0.8)";
+  ctx.fill();
+  // 수염
+  [[118, 258], [118, 266]].forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x - 20, y - 8, x - 30, y + 5, x - 35, y);
+    ctx.strokeStyle = "rgba(50, 40, 30, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+}
+
+/** 맹호도 (호랑이) */
+function drawTiger(ctx: CanvasRenderingContext2D) {
+  // 몸통
+  ctx.beginPath();
+  ctx.ellipse(200, 300, 95, 65, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(210, 165, 80, 0.5)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.6)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // 머리
+  ctx.beginPath();
+  ctx.ellipse(200, 180, 65, 58, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(210, 165, 80, 0.5)";
+  ctx.fill();
+  ctx.stroke();
+  // 줄무늬
+  const stripes = [
+    [150, 160, 165, 145], [165, 148, 175, 132],
+    [220, 148, 230, 132], [235, 160, 250, 145],
+    [130, 290, 115, 275], [140, 315, 122, 305],
+    [260, 290, 275, 275], [250, 315, 268, 305],
+  ] as [number, number, number, number][];
+  stripes.forEach(([x1, y1, x2, y2]) => {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = "rgba(60, 40, 20, 0.45)";
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.stroke();
+  });
+  // 눈
+  [[-25, -18], [25, -18]].forEach(([dx, dy]) => {
+    ctx.beginPath();
+    ctx.ellipse(200 + dx, 180 + dy, 10, 8, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(190, 140, 40, 0.8)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(50, 40, 30, 0.7)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(200 + dx, 180 + dy, 4, 7, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(20, 15, 10, 0.9)";
+    ctx.fill();
+  });
+  // 코
+  ctx.beginPath();
+  ctx.ellipse(200, 196, 8, 6, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(180, 100, 90, 0.7)";
+  ctx.fill();
+  // 수염
+  [[-1, 0], [1, 0]].forEach(([dir]) => {
+    ctx.beginPath();
+    ctx.moveTo(200, 200);
+    ctx.lineTo(200 + dir * 60, 198);
+    ctx.strokeStyle = "rgba(240, 230, 210, 0.7)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+}
+
+/** 쌍학도 (학) */
+function drawCrane(ctx: CanvasRenderingContext2D) {
+  // 소나무 가지
+  ctx.strokeStyle = "rgba(55, 42, 28, 0.65)";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(60, 500);
+  ctx.bezierCurveTo(80, 400, 100, 350, 130, 290);
+  ctx.stroke();
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(130, 290);
+  ctx.bezierCurveTo(180, 270, 240, 265, 300, 270);
+  ctx.stroke();
+  // 학 1 (서 있는 자세)
+  // 몸통
+  ctx.beginPath();
+  ctx.ellipse(230, 230, 32, 18, -0.3, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(240, 238, 232, 0.9)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.6)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // 목·머리
+  ctx.beginPath();
+  ctx.moveTo(205, 220);
+  ctx.bezierCurveTo(195, 190, 190, 165, 185, 145);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(185, 138, 10, 8, -0.2, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(240, 238, 232, 0.9)";
+  ctx.fill();
+  ctx.stroke();
+  // 붉은 정수리
+  ctx.beginPath();
+  ctx.ellipse(185, 130, 7, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(190, 60, 50, 0.85)";
+  ctx.fill();
+  // 부리
+  ctx.beginPath();
+  ctx.moveTo(178, 138);
+  ctx.lineTo(155, 136);
+  ctx.strokeStyle = "rgba(50, 40, 30, 0.7)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // 다리
+  [[215, 248], [235, 248]].forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - 5, y + 25);
+    ctx.strokeStyle = "rgba(50, 40, 30, 0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+  // 꼬리 깃털
+  ctx.beginPath();
+  ctx.moveTo(258, 230);
+  ctx.bezierCurveTo(280, 215, 295, 220, 285, 240);
+  ctx.fillStyle = "rgba(30, 25, 20, 0.5)";
+  ctx.fill();
+  ctx.stroke();
+}
+
 /**
  * 먹화를 주어진 크기의 canvas에 그린다
  * 모든 그리기는 400×500 기준 좌표를 사용하고 ctx.scale로 대상 크기에 맞춘다
@@ -454,6 +640,9 @@ export function drawInkArt(
     case "pine":          drawPine(ctx);            break;
     case "grape":         drawGrape(ctx);           break;
     case "peony":         drawPeony(ctx);           break;
+    case "carp":          drawCarp(ctx);            break;
+    case "tiger":         drawTiger(ctx);           break;
+    case "crane":         drawCrane(ctx);           break;
   }
   drawSeal(ctx);
 

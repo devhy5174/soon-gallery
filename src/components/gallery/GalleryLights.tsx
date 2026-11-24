@@ -121,10 +121,12 @@ function BackWallSpot({
   position,
   targetPos,
   intensity = 60,
+  reverse = false,
 }: {
   position: [number, number, number];
   targetPos: [number, number, number];
   intensity?: number;
+  reverse?: boolean;
 }) {
   const light = useMemo(() => {
     const l = new THREE.SpotLight("#fff8f0", intensity);
@@ -135,8 +137,7 @@ function BackWallSpot({
     return l;
   }, []);
 
-  // 앞으로 기울기: z=-10 → z=-12.9 (dz=2.9), y=4.4 → y=1.85 (dy=2.55)
-  const tiltX = Math.atan2(2.9, 2.55); // ≈ 0.85 rad (약 49°)
+  const tiltX = Math.atan2(2.9, 2.55) * (reverse ? -1 : 1);
 
   return (
     <>
@@ -214,6 +215,15 @@ export default function GalleryLights() {
       <BackWallSpot position={[-2.5, ceilY, -10]} targetPos={[-1.2, 1.85, -12.9]} />
       <BackWallSpot position={[0,    ceilY, -10]} targetPos={[0,    1.85, -12.9]} />
       <BackWallSpot position={[2.5,  ceilY, -10]} targetPos={[1.2,  1.85, -12.9]} />
+
+      {/* ── 뒷벽 사이드 액자 조명 (좌/우 각 1개) ── */}
+      <BackWallSpot position={[-3.8, ceilY, -10]} targetPos={[-3.8, 2.1, -12.9]} intensity={45} />
+      <BackWallSpot position={[3.8,  ceilY, -10]} targetPos={[3.8,  2.1, -12.9]} intensity={45} />
+
+      {/* ── 앞벽 액자 조명 (3개 — 앞을 향해 조준) ── */}
+      <BackWallSpot reverse position={[-3.5, ceilY, 10]} targetPos={[-3.5, 2.1, 12.9]} />
+      <BackWallSpot reverse position={[0,    ceilY, 10]} targetPos={[0,    2.1, 12.9]} />
+      <BackWallSpot reverse position={[3.5,  ceilY, 10]} targetPos={[3.5,  2.1, 12.9]} />
 
       {/* ── 중앙 하향 포인트라이트 — 통로·바닥 전반 조명 ── */}
       {[9, 2, -7].map((z) => (

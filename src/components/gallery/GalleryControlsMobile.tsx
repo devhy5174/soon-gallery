@@ -165,17 +165,18 @@ export default function GalleryControlsMobile({ onInteract, onEnterMediaRoom, on
 
   useFrame(({ scene }) => {
     // 작품 메시 1회 수집
-    if (!meshScanDone.current) {
-      const found: THREE.Mesh[] = [];
-      scene.traverse((obj) => {
-        if ((obj as THREE.Mesh).isMesh && obj.userData.artworkId) {
-          found.push(obj as THREE.Mesh);
-        }
-      });
-      if (found.length > 0) {
-        artworkMeshes.current = found;
-        meshScanDone.current = true;
+    const found: THREE.Mesh[] = [];
+    scene.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh && obj.userData.artworkId) {
+        found.push(obj as THREE.Mesh);
       }
+    });
+    if (found.length !== artworkMeshes.current.length) {
+      artworkMeshes.current = found;
+      meshScanDone.current = true;
+    } else if (!meshScanDone.current && found.length > 0) {
+      artworkMeshes.current = found;
+      meshScanDone.current = true;
     }
 
     // 시점 오일러 → 카메라 쿼터니언 적용
