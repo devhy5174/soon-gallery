@@ -15,6 +15,7 @@ import GalleryControlsMobile from "./GalleryControlsMobile";
 import GalleryHUD from "./GalleryHUD";
 import MobileJoystick from "./MobileJoystick";
 import ArtworkModal from "./ArtworkModal";
+import GalleryBgm from "./GalleryBgm";
 import { ARTWORK_LIST } from "./artworkData";
 import type { ArtworkData } from "./artworkData";
 import { CAMERA_INITIAL } from "./constants";
@@ -103,6 +104,9 @@ export default function Gallery({ onExit }: Props) {
         onExit={onExit}
         isModalOpen={!!selectedArtwork}
       />
+
+      {/* 배경음악 */}
+      <GalleryBgm />
 
       {/* 모바일 가상 조이스틱 */}
       {isMobile && !selectedArtwork && <MobileJoystick />}

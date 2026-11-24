@@ -104,6 +104,49 @@
 }
 
 /* ========================================
+   배경음악 버튼
+======================================== */
+
+.gallery-bgm-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 30;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255, 252, 247, 0.85);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: var(--transition);
+}
+
+.gallery-bgm-btn:hover {
+  background: var(--surface);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* 재생 중 — 음파 아이콘에 미세한 맥동 효과 */
+.gallery-bgm-btn--playing {
+  color: var(--primary);
+  border-color: var(--border);
+}
+
+.gallery-bgm-btn--playing svg {
+  animation: bgm-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes bgm-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ========================================
    크로스헤어
 ======================================== */
 
