@@ -38,7 +38,10 @@ function ArtFrame({
       // 명시적 경로가 있으면 바로 로딩
       new THREE.TextureLoader().load(
         imageUrl,
-        (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setTexture(tex); },
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          setTexture(tex);
+        },
         undefined,
         () => setTexture(canvasTex),
       );
@@ -48,10 +51,16 @@ function ArtFrame({
     const exts = ["jpg", "jpeg", "png", "webp"];
     let i = 0;
     const tryNext = () => {
-      if (i >= exts.length) { setTexture(canvasTex); return; }
+      if (i >= exts.length) {
+        setTexture(canvasTex);
+        return;
+      }
       new THREE.TextureLoader().load(
         `${import.meta.env.BASE_URL}artworks/${artType}.${exts[i++]}`,
-        (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setTexture(tex); },
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          setTexture(tex);
+        },
         undefined,
         tryNext,
       );
@@ -74,10 +83,7 @@ function ArtFrame({
       </mesh>
 
       {/* 작품 평면 — userData.artworkId 로 레이캐스트 식별 */}
-      <mesh
-        position={[0, 0, frameD / 2 + 0.003]}
-        userData={{ artworkId }}
-      >
+      <mesh position={[0, 0, frameD / 2 + 0.003]} userData={{ artworkId }}>
         <planeGeometry args={[artW, artH]} />
         <meshStandardMaterial map={texture} roughness={0.9} />
       </mesh>
@@ -116,17 +122,20 @@ export function BackWallSign() {
 
     ctx.font = "400 44px sans-serif";
     ctx.fillStyle = "#8b7360";
-    ctx.fillText("문인화  전시관", 512, 232);
+    ctx.fillText("", 512, 232);
 
     return new THREE.CanvasTexture(canvas);
   }, []);
 
-  const [paintingTexture, setPaintingTexture] = useState<THREE.Texture | null>(null);
+  const [paintingTexture, setPaintingTexture] = useState<THREE.Texture | null>(
+    null,
+  );
   const fallbackRef = useRef<THREE.Texture | null>(null);
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 640; canvas.height = 400;
+    canvas.width = 640;
+    canvas.height = 400;
     const ctx = canvas.getContext("2d")!;
     drawInkArt(ctx, 640, 400, "mountain");
     const fallback = new THREE.CanvasTexture(canvas);
@@ -135,11 +144,18 @@ export function BackWallSign() {
     const exts = ["jpg", "jpeg", "png", "webp"];
     let i = 0;
     const tryNext = () => {
-      if (i >= exts.length) { setPaintingTexture(fallback); return; }
+      if (i >= exts.length) {
+        setPaintingTexture(fallback);
+        return;
+      }
       new THREE.TextureLoader().load(
         `${import.meta.env.BASE_URL}artworks/mountain.${exts[i++]}`,
-        (tex) => { tex.colorSpace = THREE.SRGBColorSpace; setPaintingTexture(tex); },
-        undefined, tryNext,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          setPaintingTexture(tex);
+        },
+        undefined,
+        tryNext,
       );
     };
     tryNext();
@@ -172,15 +188,15 @@ export function BackWallSign() {
 
 /** 양쪽 벽 작품 배치 */
 export default function GalleryArtworks() {
-  const leftArtworks  = ARTWORK_LIST.filter((a) => a.id.startsWith("left"));
+  const leftArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("left"));
   const rightArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("right"));
-  const backArtworks  = ARTWORK_LIST.filter((a) => a.id.startsWith("back"));
+  const backArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("back"));
   const frontArtworks = ARTWORK_LIST.filter((a) => a.id.startsWith("front"));
 
   // 뒷벽 사이드 X 좌표 — 중앙 대형(3.28) 기준 좌우 2점씩
   const backXs: Record<string, number> = {
-    "back-left-1":  -3.8,
-    "back-right-1":  3.8,
+    "back-left-1": -3.8,
+    "back-right-1": 3.8,
   };
 
   return (
