@@ -18,7 +18,6 @@ const D = ROOM.depth;
 const H = ROOM.height;
 
 /** 투사 중심 (OrbitControls 타겟 & 카메라 복귀 기준) */
-const SCREEN_POS = new THREE.Vector3(0, H / 2, -6.98);
 const STAND_POS  = new THREE.Vector3(...CAMERA_POS);
 const STAND_FOV  = 65;
 const SEATED_FOV = 50;
@@ -29,33 +28,23 @@ const ART_W = ART_H * (4 / 5);  // 2.56
 
 // ─────────────────────────────────────────────────────────────
 /** 슬라이드쇼 — 뒷벽에 직접 투사 */
-function drawThankYou(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = "#f8f4ed";
-  ctx.fillRect(0, 0, 800, 1000);
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#292724";
-  ctx.font = "300 88px Georgia, serif";
-  ctx.fillText("감사합니다", 400, 440);
-  ctx.font = "300 36px sans-serif";
-  ctx.fillStyle = "#8b7360";
-  ctx.fillText("Thank you", 400, 520);
-  ctx.fillStyle = "rgba(166,75,60,0.75)";
-  ctx.fillRect(376, 580, 48, 48);
-  ctx.fillStyle = "#f8f4ed";
-  ctx.font = "bold 24px serif";
-  ctx.fillText("순", 400, 612);
-}
 
 function ArtworkDisplay({
   currentIndex,
   isThankYou,
   onAutoAdvance,
   isAutoPlay,
+  artH,
+  artW,
+  centerY,
 }: {
   currentIndex: number;
   isThankYou: boolean;
   onAutoAdvance: () => void;
   isAutoPlay: boolean;
+  artH: number;
+  artW: number;
+  centerY: number;
 }) {
   const matRef   = useRef<THREE.MeshBasicMaterial>(null);
   const canvasRef  = useRef<HTMLCanvasElement | null>(null);
@@ -180,20 +169,20 @@ function ArtworkDisplay({
   const frameD = 0.08;
 
   return (
-    <group position={[0, H / 2, -6.97]} visible={!isThankYou}>
+    <group position={[0, centerY, -6.97]} visible={!isThankYou}>
       {/* 베이지 배킹 패널 */}
       <mesh position={[0, 0, -0.02]}>
-        <planeGeometry args={[ART_W + frameT * 2 + 0.5, ART_H + frameT * 2 + 0.5]} />
+        <planeGeometry args={[artW + frameT * 2 + 0.5, artH + frameT * 2 + 0.5]} />
         <meshStandardMaterial color="#f0e9df" roughness={0.9} />
       </mesh>
       {/* 원목 액자 */}
       <mesh>
-        <boxGeometry args={[ART_W + frameT * 2, ART_H + frameT * 2, frameD]} />
+        <boxGeometry args={[artW + frameT * 2, artH + frameT * 2, frameD]} />
         <meshStandardMaterial color="#8b6845" roughness={0.5} />
       </mesh>
       {/* 작품 */}
       <mesh position={[0, 0, frameD / 2 + 0.003]}>
-        <planeGeometry args={[ART_W, ART_H]} />
+        <planeGeometry args={[artW, artH]} />
         <meshBasicMaterial ref={matRef} transparent opacity={1} />
       </mesh>
     </group>
@@ -202,7 +191,7 @@ function ArtworkDisplay({
 
 // ─────────────────────────────────────────────────────────────
 /** 감사합니다 — 벽에 직접 텍스트 투영 */
-function ThankYouWall({ visible }: { visible: boolean }) {
+function ThankYouWall({ visible, centerY }: { visible: boolean; centerY: number }) {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const opacity = useRef(0);
 
@@ -232,7 +221,7 @@ function ThankYouWall({ visible }: { visible: boolean }) {
   });
 
   return (
-    <mesh position={[0, H / 2, -6.95]}>
+    <mesh position={[0, centerY, -6.95]}>
       <planeGeometry args={[4.0, 2.0]} />
       <meshStandardMaterial
         ref={matRef}
@@ -248,9 +237,9 @@ function ThankYouWall({ visible }: { visible: boolean }) {
 
 // ─────────────────────────────────────────────────────────────
 /** 천장 빔프로젝터 */
-function Projector() {
+function Projector({ wallH: wH }: { wallH: number }) {
   return (
-    <group position={[0, H - 0.06, -1.9]}>
+    <group position={[0, wH - 0.06, -1.9]}>
       {/* 천장 마운트 암 */}
       <mesh position={[0, 0.09, 0]}>
         <boxGeometry args={[0.07, 0.18, 0.07]} />
@@ -425,60 +414,78 @@ export default function MediaRoomScene({
   seatedAt,
   onBenchSit,
 }: Props) {
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const controlsRef = useRef<any>(null);
 
-  const animTarget   = useRef(new THREE.Vector3(...CAMERA_POS));
-  const targetFov    = useRef(STAND_FOV);
-  const isAnimating  = useRef(false);
+  // PC(가로>세로)이면 방·그림 더 크게
+  const isDesktop = size.width > size.height;
+  const wallH   = isDesktop ? 5.0 : H;
+  const artH    = isDesktop ? wallH - 0.8 : ART_H;
+  const artW    = artH * (4 / 5);
+  const centerY = wallH / 2;
+  const screenPos = useMemo(
+    () => new THREE.Vector3(0, wallH / 2, -6.98),
+    [wallH],
+  );
+
   const isFirstMount = useRef(true);
+  // ease-out cubic 고정 duration 애니메이션 (lerp threshold-snap 방지)
+  const camAnim = useRef<{
+    startPos: THREE.Vector3;
+    targetPos: THREE.Vector3;
+    startFov: number;
+    targetFov: number;
+    elapsed: number;
+    duration: number;
+  } | null>(null);
 
   /**
    * 프로젝터 스포트라이트 — 프로젝터 위치에서 뒷벽 작품을 조준
    * primitive로 target을 scene에 추가해야 Three.js가 인식
    */
   const spotlight = useMemo(() => {
-    const light = new THREE.SpotLight("#fff8f0", 55);
-    light.angle      = 0.38;
-    light.penumbra   = 0.3;
+    const light = new THREE.SpotLight("#fff8f0", isDesktop ? 80 : 55);
+    light.angle      = isDesktop ? 0.45 : 0.38;
+    light.penumbra   = 0.35;
     light.castShadow = true;
-    light.target.position.set(0, H / 2, -6.98);
+    light.target.position.set(0, centerY, -6.98);
     return light;
-  }, []);
+  }, [isDesktop, centerY]);
 
-  // seatedAt 변경 → 카메라 애니메이션
+  // seatedAt 변경 → 카메라 애니메이션 시작
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
-    const pos = seatedAt ? new THREE.Vector3(...seatedAt) : STAND_POS.clone();
-    animTarget.current  = pos;
-    targetFov.current   = seatedAt ? SEATED_FOV : STAND_FOV;
-    isAnimating.current = true;
+    if (isFirstMount.current) { isFirstMount.current = false; return; }
+    const cam = camera as THREE.PerspectiveCamera;
     if (controlsRef.current) controlsRef.current.enabled = false;
+    camAnim.current = {
+      startPos: camera.position.clone(),
+      targetPos: seatedAt ? new THREE.Vector3(...seatedAt) : STAND_POS.clone(),
+      startFov: cam.fov,
+      targetFov: seatedAt ? SEATED_FOV : STAND_FOV,
+      elapsed: 0,
+      duration: 1.0,
+    };
   }, [seatedAt]);
 
   useFrame((_, delta) => {
-    if (!isAnimating.current) return;
+    if (!camAnim.current) return;
 
-    const t = Math.min(1, delta * 4.5);
-    camera.position.lerp(animTarget.current, t);
-    camera.lookAt(SCREEN_POS);
+    camAnim.current.elapsed += delta;
+    const t = Math.min(camAnim.current.elapsed / camAnim.current.duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
+
+    camera.position.lerpVectors(camAnim.current.startPos, camAnim.current.targetPos, ease);
+    camera.lookAt(screenPos);
 
     const cam = camera as THREE.PerspectiveCamera;
-    cam.fov = THREE.MathUtils.lerp(cam.fov, targetFov.current, t * 0.8);
+    cam.fov = THREE.MathUtils.lerp(camAnim.current.startFov, camAnim.current.targetFov, ease);
     cam.updateProjectionMatrix();
 
-    if (camera.position.distanceTo(animTarget.current) < 0.018) {
-      camera.position.copy(animTarget.current);
-      camera.lookAt(SCREEN_POS);
-      cam.fov = targetFov.current;
-      cam.updateProjectionMatrix();
-      isAnimating.current = false;
-
+    if (t >= 1) {
+      // t=1에서 이미 정확한 위치 — 스냅 없음
+      camAnim.current = null;
       if (controlsRef.current) {
-        controlsRef.current.target.copy(SCREEN_POS);
+        controlsRef.current.target.copy(screenPos);
         controlsRef.current.enabled = true;
         controlsRef.current.update();
       }
@@ -505,36 +512,35 @@ export default function MediaRoomScene({
       <ambientLight intensity={0.25} color="#fff4e0" />
 
       {/* 프로젝터에서 뒷벽으로 향하는 스포트라이트 */}
-      <primitive object={spotlight} position={[0, H - 0.14, -1.9]} />
+      <primitive object={spotlight} position={[0, wallH - 0.14, -1.9]} />
       <primitive object={spotlight.target} />
 
       {/* 좌석 쪽 간접 조명 */}
-      <pointLight position={[0, H - 0.3, 2]} intensity={3} distance={8} color="#ffe8c0" />
+      <pointLight position={[0, wallH - 0.3, 2]} intensity={3} distance={8} color="#ffe8c0" />
 
       {/* ── 방 구조 ── */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
         <meshStandardMaterial color="#c0956a" roughness={0.4} />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]}>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, wallH, 0]}>
         <planeGeometry args={[W, D]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.95} />
       </mesh>
-      {/* 뒷벽 — 밝은 아이보리로 투사된 그림이 선명하게 보임 */}
-      <mesh position={[0, H / 2, -D / 2]} receiveShadow>
-        <planeGeometry args={[W, H]} />
+      <mesh position={[0, wallH / 2, -D / 2]} receiveShadow>
+        <planeGeometry args={[W, wallH]} />
         <meshStandardMaterial color="#f0ebe2" roughness={0.88} />
       </mesh>
-      <mesh position={[0, H / 2, D / 2]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[W, H]} />
+      <mesh position={[0, wallH / 2, D / 2]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[W, wallH]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.9} />
       </mesh>
-      <mesh position={[-W / 2, H / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[D, H]} />
+      <mesh position={[-W / 2, wallH / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[D, wallH]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.9} />
       </mesh>
-      <mesh position={[W / 2, H / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[D, H]} />
+      <mesh position={[W / 2, wallH / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[D, wallH]} />
         <meshStandardMaterial color="#ede5d8" roughness={0.9} />
       </mesh>
 
@@ -547,7 +553,7 @@ export default function MediaRoomScene({
       ))}
 
       {/* ── 빔프로젝터 ── */}
-      <Projector />
+      <Projector wallH={wallH} />
       <ProjectorBeam />
 
       {/* ── 작품 투사 (뒷벽 직접) ── */}
@@ -556,8 +562,11 @@ export default function MediaRoomScene({
         isThankYou={isThankYou}
         onAutoAdvance={onAutoAdvance}
         isAutoPlay={isAutoPlay}
+        artH={artH}
+        artW={artW}
+        centerY={centerY}
       />
-      <ThankYouWall visible={isThankYou} />
+      <ThankYouWall visible={isThankYou} centerY={centerY} />
 
       {/* ── 벤치 ── */}
       <Bench position={[0, 0, 1.5]} onSit={() => onBenchSit([0, 1.0, 1.9])} isSeated={seatedAt !== null} />
