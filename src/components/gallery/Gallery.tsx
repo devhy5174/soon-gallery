@@ -14,10 +14,17 @@ import GalleryControls from "./GalleryControls";
 import GalleryControlsMobile from "./GalleryControlsMobile";
 import GalleryHUD from "./GalleryHUD";
 import ArtworkModal from "./ArtworkModal";
+import CelebrationForm from "./CelebrationForm";
+import CelebrationFlowers from "./CelebrationFlower";
 import { ARTWORK_LIST } from "./artworkData";
 import { VIEWPOINTS } from "./viewpoints";
 import type { ArtworkData } from "./artworkData";
 import { CAMERA_INITIAL } from "./constants";
+import {
+  loadCelebrations,
+  saveCelebration,
+  type CelebrationEntry,
+} from "./celebrationService";
 import "./Gallery.css";
 
 interface Props {
@@ -47,6 +54,12 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
   const [nearDoor, setNearDoor] = useState(false);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkData | null>(null);
   const [artworkIdx, setArtworkIdx] = useState(-1); // -1 = 투어 미시작
+
+  // 축하하기 — 폼 표시 여부 + 축하 항목 목록
+  const [showCelebrationForm, setShowCelebrationForm] = useState(false);
+  const [celebrations, setCelebrations] = useState<CelebrationEntry[]>(
+    () => loadCelebrations(),
+  );
 
   const handleActivateTour = useCallback(() => setArtworkIdx(0), []);
   const handleReturnToStart = useCallback(() => setArtworkIdx(-1), []);
@@ -81,6 +94,15 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
     setSelectedArtwork(null);
   }, []);
 
+  // 축하하기 — 폼 제출 시 저장 후 목록 갱신
+  const handleCelebrationSubmit = useCallback(
+    (data: Omit<CelebrationEntry, "id" | "createdAt">) => {
+      const updated = saveCelebration(data);
+      setCelebrations(updated);
+    },
+    [],
+  );
+
   return (
     <div className="gallery-wrapper">
       <Canvas
@@ -96,6 +118,7 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
         <GalleryLights />
         <GalleryRoom />
         <GalleryArtworks />
+        <CelebrationFlowers celebrations={celebrations} />
 
         {isMobile ? (
           <GalleryControlsMobile
@@ -103,6 +126,7 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
             onEnterMediaRoom={handleEnterMediaRoom}
             onNearDoor={setNearDoor}
             artworkIdx={artworkIdx}
+            isModalOpen={!!selectedArtwork}
           />
         ) : (
           <GalleryControls
@@ -111,6 +135,8 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
             onInteract={handleInteract}
             onEnterMediaRoom={handleEnterMediaRoom}
             onNearDoor={setNearDoor}
+            artworkIdx={artworkIdx}
+            viewpoints={VIEWPOINTS}
           />
         )}
       </Canvas>
@@ -128,11 +154,21 @@ export default function Gallery({ onExit, onEnterMediaRoom }: Props) {
         onReturnToStart={handleReturnToStart}
         onPrevArtwork={handlePrevArtwork}
         onNextArtwork={handleNextArtwork}
+        onCelebrate={() => setShowCelebrationForm(true)}
       />
 
       {selectedArtwork && (
         <ArtworkModal artwork={selectedArtwork} onClose={handleCloseModal} />
       )}
+
+      {/* 축하하기 폼 모달 */}
+      {showCelebrationForm && (
+        <CelebrationForm
+          onSubmit={handleCelebrationSubmit}
+          onClose={() => setShowCelebrationForm(false)}
+        />
+      )}
+
     </div>
   );
 }

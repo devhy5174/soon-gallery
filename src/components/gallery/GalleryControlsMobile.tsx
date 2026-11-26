@@ -12,6 +12,7 @@ import { useThree, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { MOVE_BOUNDS, DOOR_ZONE, CAMERA_INITIAL } from "./constants";
 import { VIEWPOINTS } from "./viewpoints";
+import { dpadStore } from "./dpadStore";
 
 const WALK_SPEED = 2.5;
 const EYE_HEIGHT = 1.7;
@@ -24,6 +25,7 @@ interface Props {
   onEnterMediaRoom: () => void;
   onNearDoor: (near: boolean) => void;
   artworkIdx: number;
+  isModalOpen: boolean;
 }
 
 export default function GalleryControlsMobile({
@@ -31,6 +33,7 @@ export default function GalleryControlsMobile({
   onEnterMediaRoom,
   onNearDoor,
   artworkIdx,
+  isModalOpen,
 }: Props) {
   const { camera, scene } = useThree();
   const nearDoorRef = useRef(false);
@@ -68,6 +71,17 @@ export default function GalleryControlsMobile({
   useEffect(() => { sceneRef.current = scene; }, [scene]);
   const cameraRef = useRef(camera);
   useEffect(() => { cameraRef.current = camera; }, [camera]);
+
+  // 모달 열리면 터치 상태 초기화 + D패드 해제
+  useEffect(() => {
+    if (isModalOpen) {
+      lookTouchId.current = null;
+      lookPrev.current = null;
+      tapStart.current = null;
+      isDraggingRef.current = false;
+      dpadStore.releaseAll();
+    }
+  }, [isModalOpen]);
 
   // artworkIdx 변경 → 뷰포인트 애니메이션 시작 (초기 마운트 제외)
   const isFirstMount = useRef(true);
@@ -129,6 +143,9 @@ export default function GalleryControlsMobile({
         }
       }
 
+      // 투어 모드에서는 바닥 탭 이동 잠금
+      if (artworkIdx >= 0) return;
+
       // 바닥 탭 → 이동 (뷰포인트 애니메이션 취소)
       const allHits = raycaster.intersectObjects(sceneRef.current.children, true);
       const floorHit = allHits.find((h) => Math.abs(h.point.y) < 0.1);
@@ -153,7 +170,12 @@ export default function GalleryControlsMobile({
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
+      if (isModalOpen || artworkIdx >= 0) return;
       Array.from(e.changedTouches).forEach((t) => {
+        // D패드 버튼 위 터치는 drag-look 무시
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el?.closest?.("[data-dpad]")) return;
+
         if (lookTouchId.current === null) {
           lookTouchId.current = t.identifier;
           lookPrev.current = { x: t.clientX, y: t.clientY };
@@ -165,6 +187,7 @@ export default function GalleryControlsMobile({
 
     const onTouchMove = (e: TouchEvent) => {
       e.preventDefault();
+      if (isModalOpen || artworkIdx >= 0) return;
       Array.from(e.changedTouches).forEach((t) => {
         if (t.identifier !== lookTouchId.current || !lookPrev.current) return;
         const dx = t.clientX - lookPrev.current.x;
@@ -215,7 +238,7 @@ export default function GalleryControlsMobile({
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
     };
-  }, [handleTap]);
+  }, [handleTap, isModalOpen, artworkIdx]);
 
   useFrame(({ scene }, delta) => {
     // 작품 메시 수집
@@ -231,6 +254,30 @@ export default function GalleryControlsMobile({
     } else if (!meshScanDone.current && found.length > 0) {
       artworkMeshes.current = found;
       meshScanDone.current = true;
+    }
+
+    // ── D패드 이동 ────────────────────────────────────────────
+    if (dpadStore.isAny()) {
+      vpAnim.current = null;
+      destinationRef.current = null;
+      targetYawRef.current = null;
+
+      const yaw = euler.current.y;
+      let mx = 0, mz = 0;
+      if (dpadStore.isActive("f")) { mx -= Math.sin(yaw); mz -= Math.cos(yaw); }
+      if (dpadStore.isActive("b")) { mx += Math.sin(yaw); mz += Math.cos(yaw); }
+      if (dpadStore.isActive("l")) { mx -= Math.cos(yaw); mz += Math.sin(yaw); }
+      if (dpadStore.isActive("r")) { mx += Math.cos(yaw); mz -= Math.sin(yaw); }
+
+      const len = Math.sqrt(mx * mx + mz * mz) || 1;
+      camera.position.x = THREE.MathUtils.clamp(
+        camera.position.x + (mx / len) * WALK_SPEED * delta,
+        MOVE_BOUNDS.minX, MOVE_BOUNDS.maxX,
+      );
+      camera.position.z = THREE.MathUtils.clamp(
+        camera.position.z + (mz / len) * WALK_SPEED * delta,
+        MOVE_BOUNDS.minZ, MOVE_BOUNDS.maxZ,
+      );
     }
 
     // ── 뷰포인트 애니메이션 — ease-out cubic, 고정 duration ──

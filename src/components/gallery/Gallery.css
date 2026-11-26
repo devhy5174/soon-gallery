@@ -74,6 +74,14 @@
   padding: 10px 24px;
 }
 
+.gallery-overlay__tour-btn {
+  margin-top: 16px;
+  margin-bottom: 4px;
+  font-size: 15px;
+  padding: 12px 32px;
+  letter-spacing: 0.5px;
+}
+
 /* ========================================
    나가기 버튼
 ======================================== */
@@ -456,6 +464,89 @@
   font-size: 11px;
   text-align: right;
 }
+
+/* ========================================
+   축하하기 버튼
+======================================== */
+
+.gallery-celebration-btn {
+  position: absolute;
+  bottom: 72px;
+  right: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: rgba(166, 75, 60, 0.85);
+  color: rgba(255, 252, 247, 0.95);
+  border: 1px solid rgba(166, 75, 60, 0.4);
+  border-radius: 20px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.gallery-celebration-btn:hover {
+  background: rgba(166, 75, 60, 1);
+}
+
+/* 모바일: 하단 nav 바로 위 왼쪽 — controls guide(우측)와 겹치지 않게 */
+@media (pointer: coarse) {
+  .gallery-celebration-btn {
+    bottom: 60px;
+    right: auto;
+    left: 16px;
+  }
+}
+
+/* ========================================
+   D패드 방향키 (모바일)
+======================================== */
+
+.gallery-dpad {
+  position: fixed;
+  bottom: 68px;
+  left: 16px;
+  z-index: 30;
+  display: grid;
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  grid-template-columns: repeat(3, 34px);
+  grid-template-rows: repeat(3, 34px);
+  gap: 2px;
+  touch-action: none;
+  user-select: none;
+}
+
+.gallery-dpad__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(41, 39, 36, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 7px;
+  color: rgba(255, 252, 247, 0.85);
+  font-size: 12px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.1s;
+  backdrop-filter: blur(4px);
+}
+.gallery-dpad__btn:active {
+  background: rgba(41, 39, 36, 0.85);
+}
+
+.gallery-dpad__btn:nth-child(1) { grid-area: up; }
+.gallery-dpad__btn:nth-child(2) { grid-area: left; }
+.gallery-dpad__btn:nth-child(3) { grid-area: right; }
+.gallery-dpad__btn:nth-child(4) { grid-area: down; }
 
 /* ========================================
    모바일 작품 순서 네비게이션

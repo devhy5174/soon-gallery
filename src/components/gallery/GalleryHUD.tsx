@@ -6,7 +6,32 @@
  */
 
 import { useState } from "react";
+import { dpadStore } from "./dpadStore";
+import type { DpadDir } from "./dpadStore";
 import "./Gallery.css";
+
+function DPad() {
+  const btn = (dir: DpadDir, label: string, area: string) => (
+    <button
+      className="gallery-dpad__btn"
+      style={{ gridArea: area }}
+      onPointerDown={(e) => { e.preventDefault(); dpadStore.press(dir); }}
+      onPointerUp={() => dpadStore.release(dir)}
+      onPointerLeave={() => dpadStore.release(dir)}
+      onPointerCancel={() => dpadStore.release(dir)}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="gallery-dpad" data-dpad="true">
+      {btn("f", "▲", "up")}
+      {btn("l", "◀", "left")}
+      {btn("r", "▶", "right")}
+      {btn("b", "▼", "down")}
+    </div>
+  );
+}
 
 interface Props {
   isLocked: boolean;
@@ -21,6 +46,7 @@ interface Props {
   onReturnToStart?: () => void;
   onPrevArtwork?: () => void;
   onNextArtwork?: () => void;
+  onCelebrate?: () => void;
 }
 
 export default function GalleryHUD({
@@ -36,6 +62,7 @@ export default function GalleryHUD({
   onReturnToStart,
   onPrevArtwork,
   onNextArtwork,
+  onCelebrate,
 }: Props) {
   const [navOpen, setNavOpen] = useState(false);
   const handleExit = () => {
@@ -90,9 +117,19 @@ export default function GalleryHUD({
               </div>
             )}
 
+            {/* 축하하기 버튼 */}
+            {onCelebrate && (
+              <button className="gallery-celebration-btn" onClick={onCelebrate}>
+                🌸 축하하기
+              </button>
+            )}
+
+            {/* D패드 방향키 */}
+            <DPad />
+
             {/* 하단 모바일 조작 가이드 */}
             <div className="gallery-controls-guide gallery-controls-guide--mobile">
-              <span>바닥 터치 이동</span>
+              <span>D패드 · 바닥 터치 이동</span>
               <span>드래그 시점</span>
               <span>그림 터치 감상</span>
             </div>
@@ -105,8 +142,20 @@ export default function GalleryHUD({
   // ── 데스크톱 HUD ─────────────────────────────────────────
   return (
     <>
-      {/* 클릭 유도 오버레이 (포인터 락 전, 모달 닫힌 상태) */}
-      {!isLocked && !isModalOpen && (
+      {/* 투어 모드 UI (artworkIdx >= 0) */}
+      {artworkIdx >= 0 && !isModalOpen && (
+        <>
+          <button className="gallery-exit-btn" onClick={() => { onReturnToStart?.(); }} title="자유 이동으로">✕</button>
+          <div className="gallery-artwork-nav">
+            <button className="gallery-artwork-nav__btn" onClick={onPrevArtwork}>〈 이전</button>
+            <span className="gallery-artwork-nav__count">{artworkIdx + 1} / {artworkTotal}</span>
+            <button className="gallery-artwork-nav__btn" onClick={onNextArtwork}>다음 〉</button>
+          </div>
+        </>
+      )}
+
+      {/* 클릭 유도 오버레이 — 자유 이동 모드에서만 */}
+      {!isLocked && !isModalOpen && artworkIdx < 0 && (
         <div className="gallery-overlay">
           <div className="gallery-overlay__inner">
             <div className="gallery-overlay__icon" aria-hidden="true">
@@ -121,6 +170,11 @@ export default function GalleryHUD({
               <br />
               작품·문 조준 후 <strong>클릭</strong>으로 입장
             </p>
+            {onActivateTour && (
+              <button className="gallery-overlay__tour-btn btn btn-primary" onClick={onActivateTour}>
+                작품 감상하기
+              </button>
+            )}
             <button className="gallery-overlay__exit btn btn-outline" onClick={handleExit}>
               ← 입장 화면으로
             </button>
@@ -175,10 +229,17 @@ export default function GalleryHUD({
         </>
       )}
 
-      {/* 나가기 버튼 */}
-      {!isLocked && !isModalOpen && (
+      {/* 나가기 버튼 — 자유 이동 모드에서만 */}
+      {!isLocked && !isModalOpen && artworkIdx < 0 && (
         <button className="gallery-exit-btn" onClick={handleExit} title="입장 화면으로">
           ✕
+        </button>
+      )}
+
+      {/* 축하하기 버튼 — 포인터 락 해제 상태에서 항상 표시 */}
+      {!isLocked && !isModalOpen && onCelebrate && (
+        <button className="gallery-celebration-btn" onClick={onCelebrate}>
+          🌸 축하하기
         </button>
       )}
     </>

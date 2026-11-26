@@ -10,7 +10,8 @@ import { useRef, useEffect } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
 import * as THREE from "three";
-import { MOVE_BOUNDS, DOOR_ZONE } from "./constants";
+import { MOVE_BOUNDS, DOOR_ZONE, CAMERA_INITIAL } from "./constants";
+import type { Viewpoint } from "./viewpoints";
 
 const MOVE_SPEED = 4.5;
 const EYE_HEIGHT = 1.7;
@@ -21,8 +22,9 @@ interface Props {
   onLookingAt: (id: string | null) => void;
   onInteract: (artworkId: string) => void;
   onEnterMediaRoom: () => void;
-  /** 문 근처 여부 변경 시 HUD 힌트용 */
   onNearDoor: (near: boolean) => void;
+  artworkIdx: number;
+  viewpoints: Viewpoint[];
 }
 
 export default function GalleryControls({
@@ -31,11 +33,52 @@ export default function GalleryControls({
   onInteract,
   onEnterMediaRoom,
   onNearDoor,
+  artworkIdx,
+  viewpoints,
 }: Props) {
   const { camera } = useThree();
+  const cameraRef = useRef(camera);
+  useEffect(() => { cameraRef.current = camera; }, [camera]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
   const keys = useRef<Record<string, boolean>>({});
+
+  const vpAnim = useRef<{
+    startPos: THREE.Vector3; startQuat: THREE.Quaternion;
+    targetPos: THREE.Vector3; targetQuat: THREE.Quaternion;
+    elapsed: number; duration: number;
+  } | null>(null);
+
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) { isFirstMount.current = false; return; }
+
+    if (artworkIdx >= 0 && document.pointerLockElement) document.exitPointerLock();
+
+    const cam = cameraRef.current;
+    const startPos = cam.position.clone();
+    const startQuat = cam.quaternion.clone();
+    const makeQuat = (pos: THREE.Vector3, lookAt: THREE.Vector3) => {
+      const m = new THREE.Matrix4();
+      m.lookAt(pos, lookAt, new THREE.Vector3(0, 1, 0));
+      return new THREE.Quaternion().setFromRotationMatrix(m);
+    };
+
+    if (artworkIdx === -1) {
+      const targetPos = new THREE.Vector3(...CAMERA_INITIAL.position);
+      vpAnim.current = { startPos, startQuat, targetPos,
+        targetQuat: makeQuat(targetPos, new THREE.Vector3(0, 1.7, -1)),
+        elapsed: 0, duration: 1.8 };
+      return;
+    }
+    const vp = viewpoints[artworkIdx];
+    if (!vp) return;
+    const targetPos = new THREE.Vector3(...vp.position);
+    vpAnim.current = { startPos, startQuat, targetPos,
+      targetQuat: makeQuat(targetPos, new THREE.Vector3(...vp.lookAt)),
+      elapsed: 0, duration: 1.8 };
+  }, [artworkIdx]);
 
   const lookingAtRef = useRef<string | null>(null);
   /** 문 근처 여부 */
@@ -83,7 +126,7 @@ export default function GalleryControls({
     return () => document.removeEventListener("click", onClick);
   }, [onInteract, onEnterMediaRoom]);
 
-  useFrame(({ scene, raycaster }) => {
+  useFrame(({ scene, raycaster }, delta) => {
     // 작품 메시 목록 수집 — 메인 뒷벽 그림은 텍스처 로딩 후 마운트되므로 카운트 변경 시 재스캔
     const found: THREE.Mesh[] = [];
     scene.traverse((obj) => {
@@ -121,6 +164,18 @@ export default function GalleryControls({
       onNearDoor(nearDoorRef.current);
     }
 
+    // 뷰포인트 애니메이션
+    if (vpAnim.current) {
+      vpAnim.current.elapsed += delta;
+      const t = Math.min(vpAnim.current.elapsed / vpAnim.current.duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      camera.position.lerpVectors(vpAnim.current.startPos, vpAnim.current.targetPos, ease);
+      camera.quaternion.slerpQuaternions(vpAnim.current.startQuat, vpAnim.current.targetQuat, ease);
+      if (t >= 1) vpAnim.current = null;
+      camera.position.y = EYE_HEIGHT;
+      return;
+    }
+
     // 포인터 락 활성 시에만 이동 처리
     if (!controlsRef.current?.isLocked) return;
 
@@ -155,5 +210,5 @@ export default function GalleryControls({
     camera.position.y = EYE_HEIGHT;
   });
 
-  return <PointerLockControls ref={controlsRef} />;
+  return artworkIdx < 0 ? <PointerLockControls ref={controlsRef} /> : null;
 }
