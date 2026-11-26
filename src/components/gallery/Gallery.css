@@ -588,7 +588,7 @@
 }
 
 .gallery-artwork-nav--start {
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .gallery-artwork-nav__start-btn {
@@ -611,6 +611,21 @@
   font-size: 12px;
   padding: 6px 8px;
   margin-left: 4px;
+}
+
+.gallery-artwork-nav__celebrate {
+  color: rgba(255, 252, 247, 0.9);
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(166, 75, 60, 0.5);
+  background: rgba(166, 75, 60, 0.25);
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.gallery-artwork-nav__celebrate:active {
+  background: rgba(166, 75, 60, 0.45);
 }
 
 /* ========================================

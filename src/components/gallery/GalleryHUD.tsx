@@ -102,6 +102,11 @@ export default function GalleryHUD({
                 >
                   작품 감상하기
                 </button>
+                {onCelebrate && (
+                  <button className="gallery-artwork-nav__celebrate" onClick={onCelebrate}>
+                    🌸 축하하기
+                  </button>
+                )}
               </div>
             ) : (
               <div className="gallery-artwork-nav">
@@ -114,14 +119,12 @@ export default function GalleryHUD({
                 <button className="gallery-artwork-nav__btn" onClick={onNextArtwork} aria-label="다음 작품">
                   다음 〉
                 </button>
+                {onCelebrate && (
+                  <button className="gallery-artwork-nav__celebrate" onClick={onCelebrate}>
+                    🌸
+                  </button>
+                )}
               </div>
-            )}
-
-            {/* 축하하기 버튼 */}
-            {onCelebrate && (
-              <button className="gallery-celebration-btn" onClick={onCelebrate}>
-                🌸 축하하기
-              </button>
             )}
 
             {/* D패드 방향키 */}
